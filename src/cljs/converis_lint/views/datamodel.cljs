@@ -3,6 +3,8 @@
               [re-com.core :as re-com]
               [re-com.buttons :as buttons]
               [reagent.core :as reagent]
+              [goog.string :as gstring] 
+              [goog.string.format :as gformat]
               [converis-lint.config :as config]
               [converis-lint.handlers :as handler]
               [converis-lint.graph :as graph]
@@ -45,6 +47,7 @@
                :tooltip "Not available in the free version"]]])
 
 (defn- score-evaluation[score]
+  ;; Textual representation of the evaluation
   (condp < score
     90 "good"
     80 "ok"
@@ -143,6 +146,7 @@
      :padding "0 0 0 10px"
      :children [
                 (score assessment)
+                [:div (str "Centrality index " (gstring/format "%2.2f" (* 100 (asmt/centrality data-model current-entity))))]
                 [:div (str entity-name " is " 
                            (if (nil? (:typeSelector model-info)) "not ") "dynamic.")]
                 [:div (str entity-name " has " (count attrs) " Attributes.")]
@@ -228,13 +232,13 @@
                  [performance @data-model @current-data-entity])               
                ]]))
 
-
-(defn focus-selector[]
+(defn- focus-selector[]
+  ;; Selects a data entity to focues the graph on
   (let [data-model (re-frame/subscribe [:data-model])]
     [re-com/single-dropdown 
      :choices (concat [(merge {:id -1 :label "Focus On"})]
                       (sort-by #(clojure.string/upper-case (:label %1)) 
-                               (mutils/data-entity-list data-model)))
+                               (mutils/data-entity-list @data-model)))
      :model -1
      :width "300px"
      :id-fn :id
@@ -244,9 +248,13 @@
 
 (defn data-model-explorer[]
   [re-com/v-box
-   :padding "10px 30px 50px 70px"
-   :children [
-              [re-com/h-box
+   :size "auto"
+   :justify :start 
+   :children [[re-com/h-box
+               :justify :start
+               :align :end
+               :padding "5px 0px 5px 15px"
+               :style {:background-color "#eee"}
                :children [[back-button]
                           [focus-selector]
                           ]

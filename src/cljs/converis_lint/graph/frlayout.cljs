@@ -259,6 +259,7 @@
 (defn selectable-graph[]
   (let [data-model-graph (re-frame/subscribe [:data-model-graph])]
         [re-com/h-box
+         :padding "0 0 0 10px"
          :children [(graph-component @data-model-graph)
                     [re-com/selection-list
                      :choices (mapv #(merge {:id %1 :label %1}) 
@@ -266,7 +267,7 @@
                      :model (set (mapv #(merge {:id %1 :label %1}) 
                                     (:included-entities @data-model-graph)))
                      :as-exclusions? false
-                     :max-height (str (+ component-height padding padding) "px")
+                     :max-height (str (+ component-height padding padding) "px")                    
                      :multi-select?  true
                      :disabled?      false
                      :required?      false
