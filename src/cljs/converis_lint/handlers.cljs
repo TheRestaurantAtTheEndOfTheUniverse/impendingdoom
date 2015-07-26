@@ -9,7 +9,7 @@
 (defn init-graph [db]  
   (graph/fr-layout (graphutil/update-graph db 
                           (merge {
-                                  :iteration 50
+                                  :iteration 0
                                   :total-frames 50
                                   :draw-edges true
                                   :included-entities (mapv key (:dataentitytypes (:data-model db)))
@@ -24,6 +24,7 @@
                                     :iteration 30
                                     :total-frames 30)
          updated-graph (graphutil/update-graph db graph-with-included)]
+    (.log js/console (str "Iteration: " (:iteration graph)))
      (if-not iteration-running
        (js/setTimeout graph/updater 20))
      (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))

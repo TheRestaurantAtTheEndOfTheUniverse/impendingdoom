@@ -11,7 +11,6 @@
 
 
 (def EPSILON 0.000000001)
-(def FORCEC 0.5)
 (def OPTDIST 2)
 
 (def component-width 680)
@@ -24,6 +23,7 @@
 )
 
 (defn repulse-nodes [n1 n2]
+  ;; Repulse n1 from influence by n2
   (let [xdelta (- (:x n1) (:x n2))
         ydelta (- (:y n1) (:y n2))
         len (maxsqrt xdelta ydelta)
@@ -57,6 +57,8 @@
             :ydisp (+ (:ydisp n2) yd))]))
 
 (defn move-node[n temp]
+  ;; Move nodes after both repulsive
+  ;; and attractive froces are calculated
   (let [delta (maxsqrt (:xdisp n) (:ydisp n))
         move-x (* (/ (:xdisp n) delta) (min delta temp))
         move-y (* (/ (:ydisp n) delta) (min delta temp))]
@@ -113,11 +115,16 @@
        ))))
 
 (defn save-positions[graph]
+  ;; Save positions before starting layout
+  ;; Positions will be interpolated when drawing
   (assoc graph :nodes (mapv #(assoc %1 :x-orig (:x %1)
                                     :y-orig (:y %1)) (:nodes graph))))
 
 
 (defn bounding-box[nodes xkey ykey]
+  ;; Calculate bounding box for nodes
+  ;; Can be used for final and original 
+  ;; positions
   (let [xcoords (concat (map #(get %1 xkey) nodes))
         ycoords (concat (map #(get %1 ykey) nodes))
         xmin (apply min xcoords)
@@ -128,20 +135,20 @@
 )
 
 (defn fr-layout[graph temp iterations]
+  ;; Fruchtermann Reingold layout algorithm
   (layout-iteration (save-positions graph) temp 5)
 )
 
 (defn updater[]
+  ;; Updated loop
+  ;; Reschedules itself until iterations is 0
+  ;; Sync dispatches graph changes so it is 
+  ;; repainted
   (let [data-model-graph (re-frame/subscribe [:data-model-graph])
         iteration (:iteration @data-model-graph)]
-    ;;(.log js/console (str "Updater " iteration))    
-                                        ;(.log js/console (str "Temp " temp))
-                                        ;(.log js/console (str "New state" (:nodes next-iteration)))
     (re-frame/dispatch-sync [:data-model-graph (assoc @data-model-graph :iteration (dec iteration))])
     (if (> iteration 0)
       (js/setTimeout updater 20))))
-
-(js/setTimeout updater 1000)
 
 (defn coordinate-transform[x y range-x range-y min-x min-y]
   [(if (= range-x 0)
@@ -172,8 +179,7 @@
       )))
   
 (defn graph-component[data-model-graph]
-  (let [visible (re-frame/subscribe [:data-model-graph-visible-entities])
-        nodes (:nodes data-model-graph)
+  (let [nodes (:nodes data-model-graph)
         edges (:edges data-model-graph)
         iteration (max (:iteration data-model-graph) 0)
         total-frames (:total-frames data-model-graph)
