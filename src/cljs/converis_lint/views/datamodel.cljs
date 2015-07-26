@@ -17,7 +17,7 @@
    :on-click #(re-frame/dispatch [:stage :start-screen])]
 )
 
-(defn- nav-header [current-entity]
+(defn- nav-header [data-model current-entity]
   [re-com/h-box
    :justify :start
    :align :end
@@ -27,7 +27,7 @@
               [back-button]
               [re-com/single-dropdown
                :choices (sort-by #(clojure.string/upper-case (:label %1)) 
-                                 (mutils/data-entity-list))
+                                 (mutils/data-entity-list data-model))
                :model current-entity
                :width "300px"
                :on-change #(re-frame/dispatch [:current-data-entity %])
@@ -132,9 +132,9 @@
                             [:td (count (val (first type)))]]))]]])
 )
 
-(defn- basic-info[current-entity]
+(defn- basic-info[data-model current-entity]
   (let [entity-name (mutils/data-entity-name current-entity)
-        model-info (mutils/data-entity entity-name)        
+        model-info (mutils/data-entity data-model entity-name)        
         attrs (:attributeDefinitions model-info)
         by-type (group-by :dataType attrs)
         assessment (asmt/assess model-info)
@@ -183,9 +183,9 @@
              (hint-row (first hint) (second hint))))]]])
 )
 
-(defn- performance [current-entity]
+(defn- performance [data-model current-entity]
   (let [entity-name (mutils/data-entity-name current-entity)
-        model-info (mutils/data-entity entity-name)    
+        model-info (mutils/data-entity data-model entity-name)    
         assessment (asmt/assess model-info)    
         ]
     [re-com/v-box
@@ -216,28 +216,30 @@
 
 (defn main-screen [] 
   (let [current-data-entity (re-frame/subscribe [:current-data-entity])
+        data-model (re-frame/subscribe [:data-model])
         stage (re-frame/subscribe [:stage])]
    [re-com/v-box
     :size "auto"
     :justify :start 
-    :children [[nav-header @current-data-entity]
+    :children [[nav-header @data-model @current-data-entity]
                (if (= @stage :overview-screen)
-                 [basic-info @current-data-entity])
+                 [basic-info @data-model @current-data-entity])
                (if (= @stage :performance-screen)
-                 [performance @current-data-entity])               
+                 [performance @data-model @current-data-entity])               
                ]]))
 
 
 (defn focus-selector[]
+  (let [data-model (re-frame/subscribe [:data-model])]
     [re-com/single-dropdown 
      :choices (concat [(merge {:id -1 :label "Focus On"})]
                       (sort-by #(clojure.string/upper-case (:label %1)) 
-                               (mutils/data-entity-list)))
+                               (mutils/data-entity-list data-model)))
      :model -1
      :width "300px"
      :id-fn :id
      :label-fn :label
-     :on-change #(re-frame/dispatch [:focused-data-entity %])])
+     :on-change #(re-frame/dispatch [:focused-data-entity %])]))
 
 
 (defn data-model-explorer[]

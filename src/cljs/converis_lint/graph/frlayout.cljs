@@ -69,6 +69,8 @@
          :ydisp 0)))
 
 (defn repulse [all-nodes c]
+  ;; Walk through all nodes and
+  ;; calculate repulsive forces
   (reduce #(if (= (:id %2) (:id %1))
              %1
              (repulse-nodes %1 %2))

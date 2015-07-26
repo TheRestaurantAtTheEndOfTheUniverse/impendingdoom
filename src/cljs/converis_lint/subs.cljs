@@ -1,7 +1,6 @@
 (ns converis-lint.subs
     (:require-macros [reagent.ratom :refer [reaction]])
-    (:require [re-frame.core :as re-frame]
-              [converis-lint.graph :as graph]))
+    (:require [re-frame.core :as re-frame]))
 
 (re-frame/register-sub
  :name
@@ -37,7 +36,6 @@
  (fn [db]
    (reaction (:data-model @db))
 ))
-
 
 (re-frame/register-sub
  :focused-data-entity

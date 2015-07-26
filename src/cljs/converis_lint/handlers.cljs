@@ -14,21 +14,24 @@
                                   :draw-edges true
                                   :included-entities (mapv key (:dataentitytypes (:data-model db)))
                                   :all-entities (mapv key (:dataentitytypes (:data-model db)))}
-                                 
-)) 1 50))
+                                 )) 1 50))
 
 (defn change-visible-entities [db entities]
+  ;; Change items visible in the explorer
   (let [graph (:data-model-graph db)
-         iteration-running (> (:iteration graph) 0)
-         graph-with-included (assoc graph :included-entities entities
+        ;; Animation already running?
+        iteration-running (> (:iteration graph) 0)
+        ;; Update included entities
+        graph-with-included (assoc graph :included-entities entities
                                     :iteration 30
                                     :total-frames 30)
-         updated-graph (graphutil/update-graph db graph-with-included)]
-    (.log js/console (str "Iteration: " (:iteration graph)))
-     (if-not iteration-running
-       (js/setTimeout graph/updater 20))
-     (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
-     ))
+        ;; Update nodes and edges
+        updated-graph (graphutil/update-graph db graph-with-included)]
+    (if-not iteration-running
+      (js/setTimeout graph/updater 20))
+    ;; Recalculate layout
+    (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
+    ))
 
 (re-frame/register-handler
  :initialize-db
@@ -61,6 +64,9 @@
    (change-visible-entities db entities)))
 
 (re-frame/register-handler
+ ;; Focus on a specific entities
+ ;; This will make the focused entity
+ ;; and all directly connected entities visible
  :focused-data-entity
  (fn [db [_ entity]]
    (let [visible-entities (conj (mutils/connected-data-entities db entity) entity)]

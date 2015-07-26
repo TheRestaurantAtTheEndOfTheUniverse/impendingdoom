@@ -15,25 +15,21 @@
                           "public manual"])
 
 (defn is-internal-attribute[attr]
+  ;; Check if the attribute is an internal one
   (not (nil? (some #{attr} internal-attributes)))
 )
 
-
-(defn- datamodel []
-  (:data-model db/default-db)
-)
-
-(defn data-entity [id]
-  (get (:dataentitytypes (datamodel)) id))
+(defn data-entity [datamodel id] 
+  (get (:dataentitytypes datamodel) id))
 
 (defn data-entity-name [id]
   id
 )
 
-(defn data-entity-list []
+(defn data-entity-list [datamodel]
   (reduce #(conj %1 (assoc {} :id (key %2) :label (key %2)))
           []
-          (:dataentitytypes (datamodel))))
+          (:dataentitytypes datamodel)))
 
 (defn connected-data-entities [db entity]
   (reduce #(if (= entity (:left %2))
