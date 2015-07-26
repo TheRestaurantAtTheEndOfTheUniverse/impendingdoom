@@ -1,0 +1,5 @@
+/target/
+*~
+/nohup.out
+/.nrepl-port
+/figwheel_server.log

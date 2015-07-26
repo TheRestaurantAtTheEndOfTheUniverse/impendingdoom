@@ -1,0 +1,59 @@
+.navheader-button {
+  padding-right: 5px;
+}
+
+.internal-attribute {
+    color: red;
+}
+
+.hint-col {
+ width: 30em;
+}
+
+.header-row {
+ font-weight: bold;
+ background-color: #eee; 
+}
+
+.header-row td {
+padding: 0 10px 0 10px;
+}
+
+.odd-row {
+ background-color: #eef;
+}
+
+.odd-row td {
+padding: 0 10px 0 10px;
+}
+
+.even-row td {
+padding: 0 10px 0 10px;
+}
+
+.assessment {
+  font-size: 40px;
+}
+
+.abysmal {
+  color: red;
+}
+
+.very_bad {
+  color: red;
+}
+
+.bad {
+  color: orange;
+}
+
+.good {
+  color: green;
+}
+
+.ok {
+  color: yellow;
+}
+
+
+
