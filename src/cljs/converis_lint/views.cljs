@@ -35,7 +35,8 @@
    :align :start
    :padding "10px 30px 50px 70px"
    :style {:font-size "48px"}
-   :children [[graph/selectable-graph]              
+   :children [[re-com/hyperlink :label "Data model explorer"
+               :on-click #(re-frame/dispatch [:stage :data-model-explorer])]             
               [re-com/hyperlink :label "Data entity types"
                :on-click #(re-frame/dispatch [:stage :overview-screen])]
               [re-com/hyperlink :label "Rights" 
@@ -53,6 +54,8 @@
        :height "100%"
        :children [(if (= @stage :start-screen)
                     [modules])
+                  (if (= @stage :data-model-explorer)
+                    [datamodel/data-model-explorer])
                   (if (or (= @stage :overview-screen)
                           (= @stage :performance-screen))
                       [datamodel/main-screen])

@@ -50,3 +50,6 @@
           0
           (:attributeDefinitions entity))
 )
+
+
+(defn centrality [db data-entity-type])

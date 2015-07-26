@@ -29,6 +29,18 @@
 (re-frame/register-sub
  :data-model-graph-visible-entities
  (fn [db]
-   (reaction (:data-model-graph-visible-entities @db))
-   (reaction (:data-model-graph @db))
+   (reaction (:included-entities (:data-model-graph @db)))
+))
+
+(re-frame/register-sub
+ :data-model
+ (fn [db]
+   (reaction (:data-model @db))
+))
+
+
+(re-frame/register-sub
+ :focused-data-entity
+ (fn [db]
+   (reaction -1)
 ))

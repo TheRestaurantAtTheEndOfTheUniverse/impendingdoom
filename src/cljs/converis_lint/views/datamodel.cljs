@@ -2,10 +2,19 @@
     (:require [re-frame.core :as re-frame]
               [re-com.core :as re-com]
               [re-com.buttons :as buttons]
+              [reagent.core :as reagent]
               [converis-lint.config :as config]
+              [converis-lint.handlers :as handler]
+              [converis-lint.graph :as graph]
               [converis-lint.db :as db]
               [converis-lint.assessment :as asmt]
               [converis-lint.model-utils :as mutils])
+)
+
+(defn back-button[]
+  [buttons/md-icon-button 
+   :md-icon-name "md-home"
+   :on-click #(re-frame/dispatch [:stage :start-screen])]
 )
 
 (defn- nav-header [current-entity]
@@ -15,9 +24,7 @@
    :padding "5px 0px 5px 15px"
    :style {:background-color "#eee"}
    :children [
-              [buttons/md-icon-button 
-               :md-icon-name "md-home"
-               :on-click #(re-frame/dispatch [:stage :start-screen])]
+              [back-button]
               [re-com/single-dropdown
                :choices (sort-by #(clojure.string/upper-case (:label %1)) 
                                  (mutils/data-entity-list))
@@ -197,7 +204,6 @@
    ]  
 )
 
-
 (defn- data-entity-hint-table [hints]
     [:table
      (doall 
@@ -220,4 +226,28 @@
                (if (= @stage :performance-screen)
                  [performance @current-data-entity])               
                ]]))
-               
+
+
+(defn focus-selector[]
+    [re-com/single-dropdown 
+     :choices (concat [(merge {:id -1 :label "Focus On"})]
+                      (sort-by #(clojure.string/upper-case (:label %1)) 
+                               (mutils/data-entity-list)))
+     :model -1
+     :width "300px"
+     :id-fn :id
+     :label-fn :label
+     :on-change #(re-frame/dispatch [:focused-data-entity %])])
+
+
+(defn data-model-explorer[]
+  [re-com/v-box
+   :padding "10px 30px 50px 70px"
+   :children [
+              [re-com/h-box
+               :children [[back-button]
+                          [focus-selector]
+                          ]
+               ]
+              [graph/selectable-graph]
+              ]])
