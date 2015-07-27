@@ -28,6 +28,14 @@
          :weight 0.2})
 )
 
+(defn- assess-binary-attributes[data-entity-type]
+  (let [binary (filter #(= (:dataType %1) "BINARY") 
+                       (:attributeDefinitions data-entity-type))]
+    (map #(merge {:type :binary-attribute
+                  :weight 1
+                  :location {:name %1}}) binary)
+    ))
+
 (defn- assess-text-attributes[model-info]
   (reduce #(if (and (not (contains? mutils/internal-attributes (:name %2)))
                     (= (:dataType %2) "TEXT"))
@@ -39,8 +47,9 @@
           (:attributeDefinitions model-info))
 )
 
-(defn assess[entity]
+(defn assess [entity]
   (concat  (assess-attributes-count entity)
+           (assess-binary-attributes entity)
            (assess-text-attributes entity)
            (assess-description entity))
 )

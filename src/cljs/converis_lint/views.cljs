@@ -39,6 +39,12 @@
                :on-click #(re-frame/dispatch [:stage :data-model-explorer])]             
               [re-com/hyperlink :label "Data entity types"
                :on-click #(re-frame/dispatch [:stage :overview-screen])]
+              [re-com/hyperlink :label "Link entity types" 
+               :tooltip "Not available in the free version"
+               :tooltip-position :right-center]
+              [re-com/hyperlink :label "Choice groups" 
+               :tooltip "Not available in the free version"
+               :tooltip-position :right-center]
               [re-com/hyperlink :label "Rights" 
                :tooltip "Not available in the free version"
                :tooltip-position :right-center]]]  

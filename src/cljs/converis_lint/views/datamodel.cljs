@@ -58,6 +58,7 @@
 )
 
 (defn- score [hints] 
+  ;; Sum up all the minus points and create a rating
   (let [score (- 100 (apply + (map :weight hints)))
         evaluation (score-evaluation score)]
     [:div {:class "assessment"} "Overall assessment " 
@@ -79,11 +80,14 @@
                                     [re-com/md-icon-button :md-icon-name "md-edit"
                                      :tooltip "Not available in the free version"]
                                     [re-com/md-icon-button :md-icon-name "md-delete"
-                                     :tooltip "Not available in the free version"]]))]
+                                     :tooltip "Not available in the free version"]
+                                    [re-com/md-icon-button :md-icon-name "md-cloud"
+                                     :tooltip "Move to external storage"]]))]
                           ])
 )
 
 (defn- attr-sorter[a1 a2]
+  ;; Sort attriubtes by internal and name
   (let [internal1 (mutils/is-internal-attribute (:name a1))
         internal2 (mutils/is-internal-attribute (:name a2))
         ]
@@ -95,6 +99,7 @@
 )
 
 (defn- attr-table[attrs]
+  ;; Table with all defined attributes for a data entity type
   (let [row-classes (cycle ["even-row" "odd-row"])]
     [:div
     [re-com/title :level :level1 :label "All attributes"]
@@ -114,6 +119,7 @@
 
 
 (defn- attr-by-type-table[attrs]
+  ;; Count attributes by type
   (let [by-type (group-by :dataType attrs)
         count-by-type (reduce #(assoc %1 (key %2) (count (val %2)))
                               {}
