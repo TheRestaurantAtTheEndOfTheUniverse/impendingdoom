@@ -1,4 +1,4 @@
-(ns converis-lint.model-utils
+(ns converis-lint.modelutils
     (:require [converis-lint.db :as db])
 )
 
@@ -39,3 +39,24 @@
                %1))
           #{}
           (:linkentitytypes (:data-model db))))
+
+
+
+(defn- tree-cgv [root cgvs]
+  (let [children (filter #(= (:name root) (:parentChoiceGroupValue %1)) cgvs)]
+    (.log js/console (str "children of " (:name root) ": " (map :name children)))
+    (if (empty? children)
+      (select-keys root [:name :selectable :step] )
+      (assoc root :children (map #(tree-cgv %1 cgvs) 
+                                 (sort-by :step children))))))
+
+(defn- tree-cgvs [cgvs]
+  (let [roots (filter #(not (:parentChoiceGroupValue %1)) cgvs)]
+    (.log js/console (str "roots: " roots))
+    (map #(tree-cgv %1 cgvs) roots)))
+
+(defn convert-choicegroup[cg]
+  (.log js/console (str "Convert: " (:name cg)))
+  (if (:tree cg)
+    (assoc (select-keys cg [:name :tree]) :choice-group-values
+           (tree-cgvs (:choiceGroupValues cg)))))

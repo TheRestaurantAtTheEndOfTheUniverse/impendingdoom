@@ -1,8 +1,8 @@
 (ns converis-lint.handlers
     (:require [re-frame.core :as re-frame]
               [converis-lint.graph.util :as graphutil]
-              [converis-lint.graph :as graph]
-              [converis-lint.model-utils :as mutils]
+              [converis-lint.graph.frlayout :as graph]
+              [converis-lint.modelutils :as mutils]
               [converis-lint.db :as db]))
 
 

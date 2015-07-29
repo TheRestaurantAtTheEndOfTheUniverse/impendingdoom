@@ -6,9 +6,9 @@
               [converis-lint.config :as config]
               [converis-lint.views.datamodel :as datamodel]
               [converis-lint.db :as db]
-              [converis-lint.graph :as graph]
+              [converis-lint.graph.frlayout :as graph]
               [converis-lint.assessment :as asmt]
-              [converis-lint.model-utils :as mutils])
+              [converis-lint.modelutils :as mutils])
 )
 
 
@@ -30,6 +30,7 @@
 
 
 (defn modules[]
+    (let [cg (re-frame/subscribe [:choice-groups])]
   [re-com/v-box
    :justify :center
    :align :start
@@ -47,7 +48,9 @@
                :tooltip-position :right-center]
               [re-com/hyperlink :label "Rights" 
                :tooltip "Not available in the free version"
-               :tooltip-position :right-center]]]  
+               :tooltip-position :right-center]
+              [:div (str @cg)]
+]])  
 )
 
 

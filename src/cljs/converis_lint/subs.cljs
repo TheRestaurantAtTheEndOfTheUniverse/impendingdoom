@@ -38,6 +38,13 @@
 ))
 
 (re-frame/register-sub
+ :choice-groups
+ (fn [db]
+   (reaction (:choice-groups @db))
+))
+
+
+(re-frame/register-sub
  :focused-data-entity
  (fn [db]
    (reaction -1)

@@ -7,10 +7,10 @@
               [goog.string.format :as gformat]
               [converis-lint.config :as config]
               [converis-lint.handlers :as handler]
-              [converis-lint.graph :as graph]
+              [converis-lint.graph.frlayout :as graph]
               [converis-lint.db :as db]
               [converis-lint.assessment :as asmt]
-              [converis-lint.model-utils :as mutils])
+              [converis-lint.modelutils :as mutils])
 )
 
 (defn back-button[]

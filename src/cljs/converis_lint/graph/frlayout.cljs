@@ -1,4 +1,4 @@
-(ns converis-lint.graph
+(ns converis-lint.graph.frlayout
     (:require [reagent.core :as reagent]
               [re-frame.core :as re-frame]
               [re-com.core :as re-com]

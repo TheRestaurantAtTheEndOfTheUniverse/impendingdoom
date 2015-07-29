@@ -1,7 +1,6 @@
 (ns converis-lint.assessment
     (:require [converis-lint.config :as config]
-              [converis-lint.db :as db]
-              [converis-lint.model-utils :as mutils])
+              [converis-lint.modelutils :as mutils])
 )
 
 (def max-attribute-count 50)
