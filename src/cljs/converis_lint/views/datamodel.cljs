@@ -44,7 +44,8 @@
                :on-click #(re-frame/dispatch [:stage :performance-screen])]
               [re-com/hyperlink :label "Templates"
                :class "navheader-button"
-               :tooltip "Not available in the free version"]]])
+               :on-click #(re-frame/dispatch [:stage :template-overview-for-entity])
+               :tooltip "Template evaluation"]]])
 
 (defn- score-evaluation[score]
   ;; Textual representation of the evaluation
@@ -193,6 +194,29 @@
              (hint-row (first hint) (second hint))))]]])
 )
 
+
+(defn template-overview-table []
+  (let [templates (re-frame/subscribe [:current-templates])]
+    [:table 
+    (doall (for [template @templates]
+             ^{:key (str (:templateType template) (:popup template) (:type template))}
+             [:tr
+              [:td (:templateType template)]
+              [:td (str (:popup template))]
+              [:td (str (:type template))]
+              ]
+             )           
+           )]
+))
+
+(defn- template-overview []
+    [re-com/v-box
+     :padding "0 0 0 10px"
+     :children [ [:div "Template overview"]
+                 (template-overview-table)
+                ]]
+)
+
 (defn- performance [data-model current-entity]
   (let [entity-name (mutils/data-entity-name current-entity)
         model-info (mutils/data-entity data-model entity-name)    
@@ -204,6 +228,7 @@
                 [:div (str "Estimated weight: " (asmt/data-entity-weight model-info))]
                 [:div (str "Estimated total weight: " "data not available via webservices")]
                 (hint-table assessment)
+                (template-overview-table)
                 ]]))
 
 (defn- data-entity-hint [weight summary text]
@@ -228,15 +253,17 @@
   (let [current-data-entity (re-frame/subscribe [:current-data-entity])
         data-model (re-frame/subscribe [:data-model])
         stage (re-frame/subscribe [:stage])]
-   [re-com/v-box
-    :size "auto"
-    :justify :start 
-    :children [[nav-header @data-model @current-data-entity]
-               (if (= @stage :overview-screen)
-                 [basic-info @data-model @current-data-entity])
-               (if (= @stage :performance-screen)
-                 [performance @data-model @current-data-entity])               
-               ]]))
+     [re-com/v-box
+      :size "auto"
+      :justify :start 
+      :children [[nav-header @data-model @current-data-entity]
+                 (if (= @stage :overview-screen)
+                   [basic-info @data-model @current-data-entity])
+                 (if (= @stage :performance-screen)
+                   [performance @data-model @current-data-entity])               
+                 (if (= @stage :template-overview-for-entity)
+                   [template-overview])               
+                 ]]))
 
 (defn- focus-selector[]
   ;; Selects a data entity to focues the graph on
@@ -267,3 +294,5 @@
                ]
               [graph/selectable-graph]
               ]])
+
+

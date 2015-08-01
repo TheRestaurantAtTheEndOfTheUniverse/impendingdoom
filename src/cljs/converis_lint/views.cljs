@@ -49,7 +49,6 @@
               [re-com/hyperlink :label "Rights" 
                :tooltip "Not available in the free version"
                :tooltip-position :right-center]
-              [:div (str @cg)]
 ]])  
 )
 
@@ -66,7 +65,8 @@
                   (if (= @stage :data-model-explorer)
                     [datamodel/data-model-explorer])
                   (if (or (= @stage :overview-screen)
-                          (= @stage :performance-screen))
+                          (= @stage :performance-screen)
+                          (= @stage :template-overview-for-entity))
                       [datamodel/main-screen])
                   ]]))
 )

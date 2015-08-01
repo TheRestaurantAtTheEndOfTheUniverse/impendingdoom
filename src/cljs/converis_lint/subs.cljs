@@ -43,6 +43,18 @@
    (reaction (:choice-groups @db))
 ))
 
+(re-frame/register-sub
+ :templates
+ (fn [db]
+   (reaction (:templates @db))
+))
+
+(re-frame/register-sub
+ :current-templates
+ (fn [db]
+   (reaction (get (:templates @db) (:current-data-entity @db)))
+))
+
 
 (re-frame/register-sub
  :focused-data-entity

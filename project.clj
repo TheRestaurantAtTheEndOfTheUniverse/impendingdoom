@@ -4,14 +4,22 @@
                  [reagent "0.5.0"]
                  [re-frame "0.4.1"]
                  [re-com "0.5.4"]
+                 [hickory "0.5.4"]
                  [org.clojure/math.numeric-tower "0.0.4"]
+                 [ring "1.0.2"]
+                 [compojure "1.1.6"]
+                 [org.clojure/data.xml "0.0.8"]
+                 [org.clojure/data.zip "0.1.1"]
                  ]
+
 
   :source-paths ["src/clj"]
 
   :plugins [[lein-cljsbuild "1.0.6"]
-            [lein-figwheel "0.3.3" :exclusions [cider/cider-nrepl]]]
+            [lein-figwheel "0.3.3" :exclusions [cider/cider-nrepl]]
+            [lein-ring "0.8.8"]]
 
+  :ring {:handler converis-lint.server/server}
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
   :cljsbuild {:builds [{:id "dev"
@@ -30,4 +38,7 @@
                         :compiler {:main converis-lint.core
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
-                                   :pretty-print false}}]})
+                                   :pretty-print false}}]}
+
+
+)

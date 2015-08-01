@@ -3,6 +3,7 @@
               [converis-lint.graph.util :as graphutil]
               [converis-lint.graph.frlayout :as graph]
               [converis-lint.modelutils :as mutils]
+              [converis-lint.assessment :as asmt]
               [converis-lint.db :as db]))
 
 
