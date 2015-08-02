@@ -1,5 +1,6 @@
 (ns converis-lint.modelutils
-    (:require [converis-lint.db :as db])
+    (:require [clojure.string :as str]
+              [converis-lint.db :as db])
 )
 
 (def internal-attributes ["FShort description"
@@ -31,6 +32,22 @@
           []
           (:dataentitytypes datamodel)))
 
+(defn get-link-entity-types [data-model]
+  (vals (:linkentitytypes data-model))
+)
+
+(defn get-link-entity-type [data-model name ignore-case]
+  (if ignore-case
+    (let [matches (filter #(= (str/upper-case name)
+                      (str/upper-case (key %1)))
+                   (:linkentitytypes data-model))          
+          ]
+      (if-not (empty? matches)
+        (val (first matches))
+        nil))
+    (get (:linkentitytypes data-model) name))
+)
+
 (defn connected-data-entities [db entity]
   (reduce #(if (= entity (:left %2))
              (conj %1 (:right %2))
@@ -38,9 +55,7 @@
                (conj %1 (:left %2))
                %1))
           #{}
-          (:linkentitytypes (:data-model db))))
-
-
+          (get-link-entity-types (:data-model db))))
 
 (defn- tree-cgv [root cgvs]
   (let [children (filter #(= (:name root) (:parentChoiceGroupValue %1)) cgvs)]

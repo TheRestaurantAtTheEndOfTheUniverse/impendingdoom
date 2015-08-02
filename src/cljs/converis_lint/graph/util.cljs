@@ -1,6 +1,7 @@
 (ns converis-lint.graph.util
     (:require 
               [converis-lint.db :as db]
+              [converis-lint.modelutils :as mutils]
               ))
 
 (defn node-lookup-map[graph]
@@ -33,6 +34,6 @@
                  (filter #(and (not (= (:left %1) (:right %1)))
                                (is-included graph (:left %1))
                                (is-included graph (:right %1)))
-                         (:linkentitytypes (:data-model db))))
+                         (mutils/get-link-entity-types (:data-model db))))
            )))
 

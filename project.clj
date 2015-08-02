@@ -6,10 +6,11 @@
                  [re-com "0.5.4"]
                  [hickory "0.5.4"]
                  [org.clojure/math.numeric-tower "0.0.4"]
-                 [ring "1.0.2"]
-                 [compojure "1.1.6"]
+                 [ring "1.4.0"]
+                 [compojure "1.4.0"]
                  [org.clojure/data.xml "0.0.8"]
                  [org.clojure/data.zip "0.1.1"]
+                 [cljs-ajax "0.3.14"]
                  ]
 
 
@@ -25,7 +26,10 @@
   :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src/cljs"]
 
-                        :figwheel {:on-jsload "converis-lint.core/mount-root"}
+                        :figwheel {:on-jsload "converis-lint.core/mount-root"
+                                   :http-server-root "public"
+                                   :server-port 3449
+                                   :ring-handler converis-lint.server/server}
 
                         :compiler {:main converis-lint.core
                                    :output-to "resources/public/js/compiled/app.js"
@@ -39,6 +43,18 @@
                                    :output-to "resources/public/js/compiled/app.js"
                                    :optimizations :advanced
                                    :pretty-print false}}]}
+
+
+  :profiles {:dev {
+                   :source-paths ["src/clj"]
+                   :plugins [[lein-figwheel "0.2.3-SNAPSHOT"]
+                             ]
+
+                   :figwheel {:http-server-root "public"
+                              :server-port 3449
+                              :css-dirs ["resources/public/css"]
+                              :ring-handler converis-lint.server/server}}}
+
 
 
 )

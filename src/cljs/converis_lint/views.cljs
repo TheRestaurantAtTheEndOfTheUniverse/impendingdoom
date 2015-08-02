@@ -39,7 +39,7 @@
    :children [[re-com/hyperlink :label "Data model explorer"
                :on-click #(re-frame/dispatch [:stage :data-model-explorer])]             
               [re-com/hyperlink :label "Data entity types"
-               :on-click #(re-frame/dispatch [:stage :overview-screen])]
+               :on-click #(re-frame/dispatch [:stage :data-model-stage])]
               [re-com/hyperlink :label "Link entity types" 
                :tooltip "Not available in the free version"
                :tooltip-position :right-center]
@@ -64,9 +64,7 @@
                     [modules])
                   (if (= @stage :data-model-explorer)
                     [datamodel/data-model-explorer])
-                  (if (or (= @stage :overview-screen)
-                          (= @stage :performance-screen)
-                          (= @stage :template-overview-for-entity))
+                  (if (= @stage :data-model-stage)
                       [datamodel/main-screen])
                   ]]))
 )

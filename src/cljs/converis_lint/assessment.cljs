@@ -61,7 +61,7 @@
 
 
 (defn centrality [data-model data-entity-type]
-  (let [links (:linkentitytypes data-model)]
+  (let [links (mutils/get-link-entity-types data-model)]
     (/ (count (filter #(and (not (= (:left %1) (:right %1)))
                     (or (= (:left %1) data-entity-type)
                         (= (:right %1) data-entity-type)))
@@ -69,3 +69,7 @@
        (count (filter #(not (= (:left %1) (:right %1))) 
                       links)))))
 
+
+(defn assess-edit-template[current-det template]
+
+)

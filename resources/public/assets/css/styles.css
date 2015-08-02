@@ -55,5 +55,65 @@ padding: 0 10px 0 10px;
   color: yellow;
 }
 
+.attribute-span {
+    margin-right: 5px;
+}
 
+.template-examplebox {
+    margin-right: 10px;
+}
 
+.template-det {
+    border: 1px solid black;
+    border-radius: 3px;
+    background-color: beige;
+    font-family: Oswald;
+    font-size: 10pt;
+    padding: 2px 2px 2px 2px;
+}
+
+.template-link {
+    border: 1px solid black;
+    border-radius: 3px;
+    background-color: azure;
+    font-family: Oswald;
+    font-size: 10pt;
+    padding: 2px 2px 2px 2px;
+}
+
+.template-table td {
+    vertical-align: top;
+    border: 1px solid black;
+    margin-bottom: 10px;
+    padding-top: 10px;
+}
+
+.element {
+    padding-left: 10px;
+    padding-bottom: 2px;
+    padding:right: 2px;
+}
+
+.element-id {
+    font-family: Oswald;
+    font-size: 10pt;
+    border: 1px solid black;
+    margin-right: 5px;
+    padding: 2px 2px 2px 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    background-color: #eee;
+}
+
+.element-type {
+    font-family: 'Lucida Sans Typewriter', 'Lucida Console', monaco, 'Bitstream Vera Sans Mono', monospace;
+    font-size: 10pt;
+    border: 1px solid black;
+    margin-right: 5px;
+    padding: 2px 2px 2px 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    background-color: #eee;
+}

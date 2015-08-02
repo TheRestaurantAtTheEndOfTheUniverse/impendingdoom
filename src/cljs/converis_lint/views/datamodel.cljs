@@ -9,6 +9,7 @@
               [converis-lint.handlers :as handler]
               [converis-lint.graph.frlayout :as graph]
               [converis-lint.db :as db]
+              [converis-lint.views.template :as template]
               [converis-lint.assessment :as asmt]
               [converis-lint.modelutils :as mutils])
 )
@@ -37,14 +38,14 @@
               [re-com/hyperlink :label "Overview"
                :class "navheader-button"
                :tooltip "Overview and Evaluation"
-               :on-click #(re-frame/dispatch [:stage :overview-screen])]
+               :on-click #(re-frame/dispatch [:screen :overview-screen])]
               [re-com/hyperlink :label "Performance"
                :class "navheader-button"
                :tooltip "Performance related numbers"
-               :on-click #(re-frame/dispatch [:stage :performance-screen])]
+               :on-click #(re-frame/dispatch [:screen :performance-screen])]
               [re-com/hyperlink :label "Templates"
                :class "navheader-button"
-               :on-click #(re-frame/dispatch [:stage :template-overview-for-entity])
+               :on-click #(re-frame/dispatch [:screen :template-overview-for-entity])
                :tooltip "Template evaluation"]]])
 
 (defn- score-evaluation[score]
@@ -196,24 +197,43 @@
 
 
 (defn template-overview-table []
-  (let [templates (re-frame/subscribe [:current-templates])]
+  (let [templates (re-frame/subscribe [:templates])]
     [:table 
-    (doall (for [template @templates]
-             ^{:key (str (:templateType template) (:popup template) (:type template))}
-             [:tr
-              [:td (:templateType template)]
-              [:td (str (:popup template))]
-              [:td (str (:type template))]
-              ]
-             )           
-           )]
-))
+     [:tbody
+     (doall (for [template @templates]
+              (do
+                (.log js/console (str "T: " (:dataEntityType template)))
+                ^{:key (str (:templateType template) (:popup template) (:type template))}
+                [:tr
+                 [:td               
+                  [re-com/hyperlink :label (if (nil? (:templateType template))
+                                                     "Nothing?"
+                                                     (:templateType template))
+                   :class "navheader-button"
+                   :tooltip "Overview and Evaluation"
+                   :on-click #(re-frame/dispatch [:current-template template])]]
+                 [:td (str (:popup template))]
+                 [:td (str (:type template))]
+                 ]
+                ))           
+            )]])
+  )
+
+(defn- current-template[]
+  (let [templates (re-frame/subscribe [:templates])
+        model (re-frame/subscribe [:data-model])
+        current-template (re-frame/subscribe [:current-template])
+        det (re-frame/subscribe [:current-data-entity])]
+    (if-not (nil? @current-template)
+         (template/display-template (:template @current-template) @model @det)
+       ))
+)
 
 (defn- template-overview []
-    [re-com/v-box
+    [re-com/h-box
      :padding "0 0 0 10px"
-     :children [ [:div "Template overview"]
-                 (template-overview-table)
+     :children [ (template-overview-table)
+                 [current-template]
                 ]]
 )
 
@@ -252,16 +272,16 @@
 (defn main-screen [] 
   (let [current-data-entity (re-frame/subscribe [:current-data-entity])
         data-model (re-frame/subscribe [:data-model])
-        stage (re-frame/subscribe [:stage])]
+        screen (re-frame/subscribe [:screen])]
      [re-com/v-box
       :size "auto"
       :justify :start 
       :children [[nav-header @data-model @current-data-entity]
-                 (if (= @stage :overview-screen)
+                 (if (or (= @screen :overview-screen) (nil? @screen))
                    [basic-info @data-model @current-data-entity])
-                 (if (= @stage :performance-screen)
+                 (if (= @screen :performance-screen)
                    [performance @data-model @current-data-entity])               
-                 (if (= @stage :template-overview-for-entity)
+                 (if (= @screen :template-overview-for-entity)
                    [template-overview])               
                  ]]))
 

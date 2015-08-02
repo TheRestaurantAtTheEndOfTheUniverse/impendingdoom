@@ -4,7 +4,8 @@
               [converis-lint.graph.frlayout :as graph]
               [converis-lint.modelutils :as mutils]
               [converis-lint.assessment :as asmt]
-              [converis-lint.db :as db]))
+              [converis-lint.db :as db]
+              [ajax.core :refer [GET POST]]))
 
 
 (defn init-graph [db]  
@@ -34,6 +35,8 @@
     (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
     ))
 
+
+
 (re-frame/register-handler
  :initialize-db
  (fn  [_ _]
@@ -47,12 +50,42 @@
 (re-frame/register-handler
  :stage
  (fn [db [_ stage]]
-   (assoc db :stage stage)))
+   (let [new-screen (if (= (:stage db) stage)
+                      (:screen db)
+                      nil)]
+   (assoc db :stage stage
+          :screen new-screen))))
+
+(re-frame/register-handler
+ :screen
+ (fn [db [_ screen]]
+   (assoc db :screen screen)))
+
+(defn load-templates-handler[templates]
+  (re-frame/dispatch [:templates templates])
+)
+
+(re-frame/register-handler
+ :templates
+ (fn [db [_ templates]]
+   (assoc db :templates templates)
+   ))
+
+(re-frame/register-handler
+ :current-template
+ (fn [db [_ template]]
+   (assoc db :current-template template)
+   ))
+
 
 (re-frame/register-handler
  :current-data-entity
  (fn [db [_ entity]]
-   (assoc db :current-data-entity entity)))
+   (GET (str "/templates/" entity) {:handler load-templates-handler 
+                                    :response-format :json
+                                    :keywords? true})
+   (assoc db :current-data-entity entity)
+   ))
 
 (re-frame/register-handler
  :data-model-graph

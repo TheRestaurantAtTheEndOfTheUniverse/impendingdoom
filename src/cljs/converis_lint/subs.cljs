@@ -14,10 +14,23 @@
 ))
 
 (re-frame/register-sub
+ :screen
+ (fn [db]
+   (reaction (:screen @db))
+))
+
+(re-frame/register-sub
  :current-data-entity
  (fn [db]
    (reaction (:current-data-entity @db))
 ))
+
+(re-frame/register-sub
+ :current-template
+ (fn [db]
+   (reaction (:current-template @db))
+))
+
 
 (re-frame/register-sub
  :data-model-graph
@@ -48,13 +61,6 @@
  (fn [db]
    (reaction (:templates @db))
 ))
-
-(re-frame/register-sub
- :current-templates
- (fn [db]
-   (reaction (get (:templates @db) (:current-data-entity @db)))
-))
-
 
 (re-frame/register-sub
  :focused-data-entity
