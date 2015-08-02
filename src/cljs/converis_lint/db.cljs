@@ -8,9 +8,9 @@
   {:stage :start-screen
    :data-model datamodel/datamodel
    :choice-groups (mapv choicegroups/convert-choicegroup choicegroups/choicegroups)
-   :current-data-entity "Publication"
-   :templates (group-by :dataEntityType templates/templates)
+   :current-data-entity (first (sort (keys (:dataentitytypes datamodel/datamodel))))
   }
 )
+
 
  

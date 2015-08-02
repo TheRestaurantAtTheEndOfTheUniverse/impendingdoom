@@ -39,20 +39,39 @@
    :children [(name-and-id "Text" text)
               [:span (get-in text [:attrs :value])]
               (if-not (nil? (get-in text [:attrs :textStyle]))
-                [:span (str "Style" (get-in text [:attrs :textStyle]))])
+                [:span (str "Style " (get-in text [:attrs :textStyle]))])
               ]])
 
+(defn- separated-display-element [disp]
+  [re-com/h-box
+   :children [(name-and-id "Separated display" disp)
+              [:span (get-in disp [:attrs :value])]
+              (if-not (nil? (get-in disp [:attrs :separator]))
+                [:span (get-in disp [:attrs :separator])])
+              ]])
+
+(defn- image-element [disp]
+  [re-com/h-box
+   :children [(name-and-id "Image" disp)
+              [:span (get-in disp [:attrs :imgSrc])]]])
+
+(defn- data-entity-type-element [disp]
+  [re-com/h-box
+   :children [(name-and-id "Data entity type" disp)
+              [:span (get-in disp [:attrs :name])]]])
+
+   
 (defn- attribute-element[attribute det]
   [re-com/h-box
-   :children [[:div {:class "element-type"} "Attribute"]
-              [:div {:class "element-id"} (get-in attribute [:attrs :id])]
+   :children [(name-and-id "Attribute" attribute)
               [:div (str (get-in attribute [:attrs :name]) " of " det)]
               ]])
 
 (defn- listdisplay-element[attribute]
   [re-com/h-box
    :children [(name-and-id "List display" attribute)
-              [:div (str "Lazy count "(get-in attribute [:attrs :lazyCount]) " Lazy load " (get-in attribute [:attrs :lazyLoad]))]
+              [:div (str "Lazy count "(get-in attribute [:attrs :lazyCount]) 
+                         " Lazy load " (get-in attribute [:attrs :lazyLoad]))]
               ]])
 
 (defn- iolink-element []
@@ -129,8 +148,7 @@
         other-side (other-side det link datamodel)
         ]
     [re-com/h-box
-     :children [[:div {:class "element-type"} "Link"]
-                [:div {:class "element-id"} (get-in link [:attrs :id])]
+     :children [(name-and-id "Link" link)
                 [:div 
                  [:span {:style {:padding-right "5px"}} "Going from"]  
                  [:span {:class "template-det"} det] 
@@ -146,6 +164,9 @@
    :class "element"
    :children [
               (condp = (:tag template)
+                "template" [:div 
+                            [:div (str "Template " current-det)]
+                            (display-parts template datamodel current-det)]
                 "converisoutput" [:div 
                                   [:div (str "Output template " current-det)]
                                   (display-parts template datamodel current-det)]
@@ -158,6 +179,9 @@
                 "block" [:div (block-element)
                         (display-parts template datamodel current-det)]
                 "relation" [:div (link-element template datamodel current-det)
+                        (display-parts template datamodel 
+                                       (other-side current-det template datamodel))]
+                "relationtype" [:div (link-element template datamodel current-det)
                         (display-parts template datamodel 
                                        (other-side current-det template datamodel))]
                 "render" [:div (render-element)
@@ -186,6 +210,13 @@
                          (display-parts template datamodel current-det)]
                 "paginator" [:div (paginator-element template)
                          (display-parts template datamodel current-det)]
+                "separateddisplay" [:div (separated-display-element template)
+                         (display-parts template datamodel current-det)]
+                "image" [:div (image-element template)
+                         (display-parts template datamodel current-det)]
+                "infoobjecttype" [:div (data-entity-type-element template)
+                         (display-parts template datamodel current-det)]
+
                 [:div (str (:tag template) template)
                  (display-parts template datamodel current-det)]
                 )

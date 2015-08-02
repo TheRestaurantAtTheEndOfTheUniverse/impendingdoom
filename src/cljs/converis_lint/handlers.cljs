@@ -35,11 +35,21 @@
     (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
     ))
 
+(defn load-templates-handler[templates]
+  (re-frame/dispatch [:templates templates])
+)
+
+(defn- fetch-templates [entity]
+  (GET (str "/templates/" entity) {:handler load-templates-handler 
+                                   :response-format :json
+                                   :keywords? true}))
 
 
 (re-frame/register-handler
  :initialize-db
  (fn  [_ _]
+   (.log js/console (str "Entity: " (:current-data-entity db/default-db)))
+   (fetch-templates (:current-data-entity db/default-db))
    (assoc db/default-db :data-model-graph (init-graph db/default-db))))
 
 (re-frame/register-handler
@@ -61,10 +71,6 @@
  (fn [db [_ screen]]
    (assoc db :screen screen)))
 
-(defn load-templates-handler[templates]
-  (re-frame/dispatch [:templates templates])
-)
-
 (re-frame/register-handler
  :templates
  (fn [db [_ templates]]
@@ -77,13 +83,10 @@
    (assoc db :current-template template)
    ))
 
-
 (re-frame/register-handler
  :current-data-entity
  (fn [db [_ entity]]
-   (GET (str "/templates/" entity) {:handler load-templates-handler 
-                                    :response-format :json
-                                    :keywords? true})
+   (fetch-templates entity)
    (assoc db :current-data-entity entity)
    ))
 
