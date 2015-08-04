@@ -69,7 +69,7 @@ padding: 0 10px 0 10px;
     background-color: beige;
     font-family: Oswald;
     font-size: 10pt;
-    padding: 2px 2px 2px 2px;
+    padding: 0px 2px 0px 2px;
 }
 
 .template-attr {
@@ -78,7 +78,7 @@ padding: 0 10px 0 10px;
     background-color: burlywood;
     font-family: Oswald;
     font-size: 10pt;
-    padding: 2px 2px 2px 2px;
+    padding: 0px 2px 0px 2px;
 }
 
 .template-link {
@@ -87,7 +87,7 @@ padding: 0 10px 0 10px;
     background-color: azure;
     font-family: Oswald;
     font-size: 10pt;
-    padding: 2px 2px 2px 2px;
+    padding: 0px 2px 0px 2px;
 }
 
 .template-table td {
@@ -108,10 +108,9 @@ padding: 0 10px 0 10px;
     font-size: 10pt;
     border: 1px solid black;
     margin-right: 5px;
-    padding: 2px 2px 2px 2px;
-    margin-top: 2px;
+    padding: 0px 2px 0px 2px;
     margin-bottom: 2px;
-    border-radius: 5px;
+    border-radius: 3px;
     background-color: #eee;
 }
 
@@ -120,8 +119,7 @@ padding: 0 10px 0 10px;
     font-size: 10pt;
     border: 1px solid black;
     margin-right: 5px;
-    padding: 2px 2px 2px 2px;
-    margin-top: 2px;
+    padding: 0px 2px 0px 2px;
     margin-bottom: 2px;
     border-radius: 5px;
     background-color: #eee;
