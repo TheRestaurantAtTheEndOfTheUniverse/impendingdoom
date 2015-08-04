@@ -225,7 +225,7 @@
         current-template (re-frame/subscribe [:current-template])
         det (re-frame/subscribe [:current-data-entity])]
     (if-not (nil? @current-template)
-         (template/display-template (:template @current-template) @model @det)
+         (template/display-template (:template @current-template) @model {:det @det})
        ))
 )
 

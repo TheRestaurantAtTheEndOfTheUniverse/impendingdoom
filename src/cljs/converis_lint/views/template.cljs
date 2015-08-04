@@ -64,7 +64,15 @@
 (defn- attribute-element[attribute det]
   [re-com/h-box
    :children [(name-and-id "Attribute" attribute)
-              [:div (str (get-in attribute [:attrs :name]) " of " det)]
+              [:div [:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
+               " of " [:span  {:class "template-det"} det]]
+              ]])
+
+(defn- leattribute-element[attribute det]
+  [re-com/h-box
+   :children [(name-and-id "Link entity attribute" attribute)
+              [:div [:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
+               " of " [:span  {:class "template-link"} det]]
               ]])
 
 (defn- listdisplay-element[attribute]
@@ -135,17 +143,26 @@
                    (get-in label [:attrs :labelKey]))]
    ])
 
+(defn- other-side [det link-name datamodel]
+  (if (string? link-name)
+    (if (> (.indexOf link-name ",") -1)
+      (recur det (str/split link-name ",") datamodel) 
+      (let [link-type (mutils/get-link-entity-type datamodel link-name true)]
+        (if (= (:left link-type) det)
+          (:right link-type)
+          (:left link-type))))
+    (let [new-start (other-side det (first link-name) datamodel)]
+      (if (> (count link-name) 1)
+        (recur new-start (rest link-name) datamodel)
+        new-start
+        ))))
 
-(defn- other-side [det link datamodel]
-  (let [link-name (get-in link [:attrs :name])
-        link-type (mutils/get-link-entity-type datamodel link-name   true)]
-    (if (= (:left link-type) det)
-                     (:right link-type)
-                     (:left link-type))))
+(defn- last-link [link-name]
+    (last (str/split link-name ",")))
 
 (defn- link-element[link datamodel det]
   (let [link-name (get-in link [:attrs :name])
-        other-side (other-side det link datamodel)
+        other-side (other-side det (get-in link [:attrs :name]) datamodel)
         ]
     [re-com/h-box
      :children [(name-and-id "Link" link)
@@ -158,32 +175,39 @@
                  [:span {:class "template-link"} link-name]]
                 ]]))
 
-
 (defn display-template[template datamodel current-det]
   (re-com/v-box 
    :class "element"
    :children [
               (condp = (:tag template)
                 "template" [:div 
-                            [:div (str "Template " current-det)]
+                            [:div (str "Template " (:det current-det))]
                             (display-parts template datamodel current-det)]
                 "converisoutput" [:div 
                                   [:div (str "Output template " current-det)]
                                   (display-parts template datamodel current-det)]
                 "text" [:div (text-element template)
                         (display-parts template datamodel current-det)]
-                "iot_attribute" [:div (attribute-element template current-det)
+                "iot_attribute" [:div (attribute-element template (:det current-det))
+                        (display-parts template datamodel current-det)]
+                "relt_attribute" [:div (leattribute-element template (:let current-det))
                         (display-parts template datamodel current-det)]
                 "iolink" [:div (iolink-element)
                         (display-parts template datamodel current-det)]
                 "block" [:div (block-element)
                         (display-parts template datamodel current-det)]
-                "relation" [:div (link-element template datamodel current-det)
+                "relation" [:div (link-element template datamodel (:det current-det))
                         (display-parts template datamodel 
-                                       (other-side current-det template datamodel))]
+                                       (assoc current-det 
+                                              :det (other-side (:det current-det) 
+                                                          (get-in template [:attrs :name]) datamodel)
+                                              :let (last-link (get-in template [:attrs :name]))))]
                 "relationtype" [:div (link-element template datamodel current-det)
                         (display-parts template datamodel 
-                                       (other-side current-det template datamodel))]
+                                       (assoc current-det 
+                                              :det (other-side (:det current-det) 
+                                                               (get-in template [:attrs :name]) datamodel)
+                                              :let (last-link (get-in template [:attrs :name]))))]
                 "render" [:div (render-element)
                         (display-parts template datamodel current-det)]
                 "eval" [:div (eval-element template)
@@ -214,10 +238,12 @@
                          (display-parts template datamodel current-det)]
                 "image" [:div (image-element template)
                          (display-parts template datamodel current-det)]
+                "hline" [:div (simple-element template)
+                         (display-parts template datamodel current-det)]
                 "infoobjecttype" [:div (data-entity-type-element template)
                          (display-parts template datamodel current-det)]
 
-                [:div (str (:tag template) template)
+                [:div {:style {:border "1px solid red"}}(str (:tag template) template)
                  (display-parts template datamodel current-det)]
                 )
               ]))
