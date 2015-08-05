@@ -142,10 +142,10 @@
 
 (defn- paginator-element [eval]
   [re-com/h-box
-   :children [[:div {:class "element-type"} "Paginator"]
-              [:span {:style {:padding-right "5px"}} "for"]
-              [:span {:class "element-id"} (get-in eval [:attrs :for])]]]
-                )
+   :children [(name-and-id "Paginator" eval)
+              [:div 
+               [:span {:class "right-margin"} "for"]
+               [:span {:class "element-id"} (get-in eval [:attrs :for])]]]])
 
 (defn- label-element [label]
   [re-com/h-box
