@@ -2,6 +2,7 @@
     (:require [clojure.string :as str]
               [converis-lint.modelutils :as mutils]
               [reagent.core :as reagent]
+              [clojure.zip :as zip]
               [re-com.buttons :as buttons]
               [re-com.core :as re-com]
               [re-frame.core :as re-frame])
@@ -12,9 +13,9 @@
 (declare display-template)
 
 (defn name-and-id [name elem]
-  (list [:span {:class "element-type"} name]
+  (list [:span {:class "element-type right-margin"} name
         (if-not (nil? (get-in elem [:attrs :id]))
-          [:span {:class "element-id"} (get-in elem [:attrs :id])]))
+          [:span {:class "element-id left-margin"} (get-in elem [:attrs :id])])])
 )
 
 (defn attribute-span [label key element]
@@ -64,8 +65,9 @@
 (defn- attribute-element[attribute det]
   [re-com/h-box
    :children [(name-and-id "Attribute" attribute)
-              [:div [:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
-               " of " [:span  {:class "template-det"} det]]
+              [:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
+              [:span {:class "left-margin right-margin"} "of"] 
+              [:span {:class "template-det"} det]
               ]])
 
 (defn- leattribute-element[attribute det]
@@ -101,10 +103,14 @@
   [re-com/v-box
    :children [[re-com/h-box
                :children [(name-and-id "Style" style)
+                          [:span (str (keys (dissoc (:attrs style) :width :text-align :color 
+                                                    :font-weight :font-size :line-height)))]
                           (attribute-span "Color" :color style)
                           (attribute-span "Font weight" :font-weight style)
                           (attribute-span "Font size" :font-size style)
-                          (attribute-span "Line height" :line-height style)]]
+                          (attribute-span "Line height" :line-height style)
+                          (attribute-span "Width" :width style)
+                          (attribute-span "Text align" :text-align style)]]
               [:div {:class "template-examplebox" :style (select-keys (:attrs style) [:color :font-weight :font-size :line-height])} "The quick brown fox jumps over the lazy dog"]
 ]])
 
@@ -116,16 +122,22 @@
 
 (defn- eval-element [eval]
   [re-com/h-box
-   :children [[:div {:class "element-type"} "Eval"]
+   :children [(name-and-id "Eval" eval)
               (condp = (get-in eval [:attrs :operator])
-                "set" (list [:span {:style {:padding-right "5px"}} "When"]
-                            [:span {:class "element-id"} (get-in eval [:attrs :elementId])]
-                            [:span " is not empty"])
-                "notset" (list [:span {:style {:padding-right "5px"}} "When"]
-                            [:span {:class "element-id"} (get-in eval [:attrs :elementId])]
-                            [:span " is empty"])
-                (list [:span (get-in eval [:attrs :operator])]
-                      [:span {:class "element-id"} (get-in eval [:attrs :elementId])]))]]
+                "set" (list [:div[:span {:class "right-margin"} "When"]
+                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                            [:span " is not empty"]])
+                "notset" (list [:span {:class "right-margin"} "When"]
+                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                            [:span "is empty"])
+                "notequals" (list [:span {:class "right-margin"} "When"]
+                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                            [:span {:class "right-margin"} "does not equal"]
+                            [:span (get-in eval [:attrs :argument])])
+                (list [:span {:class "right-margin"} (get-in eval [:attrs :operator])]
+                      [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                      [:span {:class "element-id right-margin"} (str (:attrs eval))]
+))]]
                 )
 
 (defn- paginator-element [eval]
@@ -137,10 +149,9 @@
 
 (defn- label-element [label]
   [re-com/h-box
-   :children [[:div {:class "element-type"} "Label"]
-              [:div {:class "element-id"} (get-in label [:attrs :id])]
-              (str (get-in label [:attrs :bundleName]) "." 
-                   (get-in label [:attrs :labelKey]))]
+   :children [(name-and-id "Label" label)
+             [:span (str (get-in label [:attrs :bundleName]) "." 
+                   (get-in label [:attrs :labelKey]))]]
    ])
 
 (defn- other-side [det link-name datamodel]
@@ -184,7 +195,7 @@
                             [:div (str "Template " (:det current-det))]
                             (display-parts template datamodel current-det)]
                 "converisoutput" [:div 
-                                  [:div (str "Output template " current-det)]
+                                  [:div (str "Output template " (:det current-det))]
                                   (display-parts template datamodel current-det)]
                 "text" [:div (text-element template)
                         (display-parts template datamodel current-det)]
@@ -247,4 +258,3 @@
                  (display-parts template datamodel current-det)]
                 )
               ]))
-

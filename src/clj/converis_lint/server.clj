@@ -44,14 +44,11 @@
        )
 
   (GET "/templates/:det" [det] 
-       (do
-         (println (flatten (map val (get processed-templates det))))
-         
        (-> (json/write-str (mapv convert-template (flatten (map val (get processed-templates det)))))
            (response)
            (content-type "application/json"))
-       ))
-
+       )
+  
 
 
   (GET "/" [] 
