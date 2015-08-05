@@ -110,8 +110,10 @@
                           (attribute-span "Font size" :font-size style)
                           (attribute-span "Line height" :line-height style)
                           (attribute-span "Width" :width style)
-                          (attribute-span "Text align" :text-align style)]]
-              [:div {:class "template-examplebox" :style (select-keys (:attrs style) [:color :font-weight :font-size :line-height])} "The quick brown fox jumps over the lazy dog"]
+                          (attribute-span "Text align" :text-align style)
+                          [buttons/info-button :info 
+                           [:div {:class "template-examplebox" :style (select-keys (:attrs style) [:color :font-weight :font-size 
+                                                                                      :line-height :width :text-align])} "The quick brown fox jumps over the lazy dog"]]]]
 ]])
 
 (defn- linebreak-element []
@@ -133,6 +135,10 @@
                 "notequals" (list [:span {:class "right-margin"} "When"]
                             [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
                             [:span {:class "right-margin"} "does not equal"]
+                            [:span (get-in eval [:attrs :argument])])
+                "equals" (list [:span {:class "right-margin"} "When"]
+                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                            [:span {:class "right-margin"} "equals"]
                             [:span (get-in eval [:attrs :argument])])
                 (list [:span {:class "right-margin"} (get-in eval [:attrs :operator])]
                       [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
