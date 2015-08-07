@@ -49,7 +49,6 @@
 (re-frame/register-handler
  :initialize-db
  (fn  [_ _]
-   (.log js/console (str "Entity: " (:current-data-entity db/default-db)))
    (fetch-templates (:current-data-entity db/default-db))
    (assoc db/default-db :data-model-graph (init-graph db/default-db))))
 
@@ -75,7 +74,13 @@
 (re-frame/register-handler
  :templates
  (fn [db [_ templates]]
-   (assoc db :templates templates)
+   (let [template (first templates)
+         current-section (if (tutil/is-edit-template (:templateType template))
+                           (tutil/first-section template)
+                           nil)]
+     (assoc db :templates templates
+            :current-template template
+            :current-section current-section))
    ))
 
 (re-frame/register-handler
@@ -99,7 +104,9 @@
  :current-data-entity
  (fn [db [_ entity]]
    (fetch-templates entity)
-   (assoc db :current-data-entity entity)
+   (assoc db :current-data-entity entity
+          :current-template nil
+          :current-section nil)
    ))
 
 (re-frame/register-handler

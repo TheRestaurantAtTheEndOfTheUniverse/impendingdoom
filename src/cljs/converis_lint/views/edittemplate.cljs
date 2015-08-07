@@ -28,6 +28,25 @@
   (map #(tutil/attribute-span %1 element) attrs)
 )
 
+(defn- extra-attribute-info [attrs]
+  [buttons/info-button :info
+   [:div {:class "extra-info"} 
+    [:div "Extra info"] 
+    [:table [:tbody 
+             (if-not (nil? (:fieldStyle attrs))
+               [:tr 
+                [:td "Field style"] 
+                [:td (:fieldStyle attrs)]])
+             (if-not (nil? (:textStyle attrs))
+               [:tr 
+                [:td "Text style"] 
+                [:td (:textStyle attrs)]])
+             [:tr 
+              [:td "Filter values"] 
+              [:td (if (true? (:filtervalues attrs)) 
+                     "Yes" "No")]]
+             ]]]])
+
 
 (defn- section-selector[template]
   (let [sections (map #(get-in %1 [:attrs :name]) (:content template))
@@ -54,12 +73,15 @@
 (defn- infobar-element [infobar]
   [re-com/h-box
    :children [(tutil/name-and-id "Infobar" infobar)
-              (attrs-display infobar [:style :value])
+              [:span {:class "right-margin"} (get-in infobar [:attrs :value])]
+              (tutil/extra-info (:attrs infobar) {:style "Style"})
               ]])
 
 (defn- grid-element [grid]
     [re-com/h-box
-     :children [[:span {:class "element-type right-margin"} "Grid"
+     :children [[:span {:class "element-type right-margin"} 
+                 (str "Grid"
+                      (if (get-in grid [:attrs :mandatory]) "*"))
                  [:span {:class "element-id left-margin"} 
                   (if (get-in grid [:attrs :extendable])
                     "+"
@@ -67,7 +89,8 @@
                  [:span {:class "element-id left-margin"} (get-in grid [:attrs :name])]]
                 (tutil/unused-attrs grid [:extendable :hideForIOT :name 
                                           :tabsToRender :gridLabelKey :showCreateLink 
-                                          :showEmptyFilePanel :showUploadLink :attributeLayout])
+                                          :showEmptyFilePanel :showUploadLink :attributeLayout
+                                          :mandatory])
                 (for [tab (str/split (get-in grid [:attrs :tabsToRender]) ",")]
                   [:span {:class "template-tab right-margin"} (str tab)]
                   )
@@ -104,26 +127,6 @@
               ]]))
 
 
-(defn- extra-attribute-info [attrs]
-  [buttons/info-button :info
-   [:div {:class "extra-info"} 
-    [:div "Extra info"] 
-    [:table [:tbody 
-             (if-not (nil? (:fieldStyle attrs))
-               [:tr 
-                [:td "Field style"] 
-                [:td (:fieldStyle attrs)]])
-             (if-not (nil? (:textStyle attrs))
-               [:tr 
-                [:td "Text style"] 
-                [:td (:textStyle attrs)]])
-             [:tr 
-              [:td "Filter values"] 
-              [:td (if (true? (:filtervalues attrs)) 
-                     "Yes" "No")]]
-             ]]]])
-
-
 (defn- attribute-element [element type type-class label]
   [re-com/h-box
    :children [(tutil/name-and-id (str label (if (get-in element [:attrs :mandatory]) "*")) element)
@@ -139,7 +142,9 @@
 
 (defn- link-element[link datamodel det]
   (let [unused (dissoc (:attrs link)
-                       :name :showEditIOLink)
+                       :name :showEditIOLink :parentonleftside 
+                       :relateLeadIns :defaultTemplateSelector
+                       :showDeleteLink)
         link-name (get-in link [:attrs :name])
         other-side (tutil/other-side det (get-in link [:attrs :name]) datamodel)
         ]
@@ -150,16 +155,48 @@
                   [:span (str unused)])
                  (tutil/attr-icon link :showEditIOLink "create" 
                                  "Show edit entity link" "Do not show edit entity link")
+                 
+                 (if (not (nil? (get-in link [:attrs :parentonleftside])))
+                   (let [right (= "right" (get-in link [:attrs :parentonleftside]))]
+                     (tutil/md (if right "arrow_back" "arrow_forward") 
+                               (if right "Right to left" "Left to right")
+                         true)))
+
+                 (tutil/attr-icon link :relateLeadIns "link" 
+                                 "Relate lead ins" "Do not related lead ins")
+
+                 (tutil/attr-icon link :showDeleteLink "content_cut" 
+                                 "Allow delete" "Do not allow delete")
+
+
                  [:span {:style {:padding-right "5px"}} "Going from"]  
                  [:span {:class "template-det"} det] 
                  [:span " to "] 
                  [:span {:class "template-det"} other-side] 
                  [:span " via "] 
-                 [:span {:class "template-link"} link-name]]
-                ]]))
+                 [:span {:class "template-link"} link-name]
+                 (if-not (nil? (get-in link [:attrs :defaultTemplateSelector]))
+                   [:span {:class "left-margin"} 
+                    (str "Default type "
+                         (get-in link [:attrs :defaultTemplateSelector]))])]]]))
+
+(defn label-element [label]
+  [re-com/h-box
+   :children [(tutil/name-and-id "Label"label)
+              [:span (str (get-in label [:attrs :bundleName]) "." 
+                   (get-in label [:attrs :labelKey]))]
+              (tutil/extra-info (:attrs label) {:textStyle "Style"})
+              ]])
+
+(defn table-element[table]
+  [re-com/h-box
+   :children [[:span (tutil/name-and-id "Table" table)]
+              (tutil/unused-attrs table [:actionColumnStyle :style])
+              (tutil/extra-info (:attrs table) {:actionColumnStyle "Action column style"
+                                          :style "Style"} :width "500px")]]
+)
 
 (def no-indent-elements ["column" "colhead"])
-
 
 (defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
   [re-com/v-box 
@@ -188,6 +225,14 @@
                            (display-parts template datamodel current-det)]
                 "text" [:div (tutil/text-element template)
                            (display-parts template datamodel current-det)]
+                "label" [:div (label-element template)
+                           (display-parts template datamodel current-det)]
+                "filteredlist" [:div 
+                                [:span {:class "element-type right-margin"} "Filtered list"
+                                 (if-not (nil? (get-in template [:attrs :name]))
+                                   [:span {:class "element-id left-margin"} 
+                                    (get-in template [:attrs :name])])]
+                                (display-parts template datamodel current-det)]
                 "relt_attribute" [:div (attribute-element template (:let current-det) 
                                                           "template-link" "Link attribute")
                            (display-parts template datamodel current-det)]
@@ -207,7 +252,7 @@
                            (let [attrs (:attrs (first (:content template)))]
                              (str (:bundleName attrs) "." (:labelKey attrs)))]
                 "table" [:div
-                         [:div (tutil/name-and-id "Table" template)]
+                         (table-element template)
                          [:table {:class "template-table"} 
                          [:tbody
                           [:tr (doall (map #(vector :td 

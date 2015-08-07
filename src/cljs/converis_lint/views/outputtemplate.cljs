@@ -147,7 +147,6 @@
                    (get-in label [:attrs :labelKey]))]]
    ])
 
-
 (defn- link-element[link datamodel det]
   (let [link-name (get-in link [:attrs :name])
         other-side (tutil/other-side det (get-in link [:attrs :name]) datamodel)

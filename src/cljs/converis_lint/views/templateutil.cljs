@@ -42,14 +42,26 @@
 (defn last-link [link-name]
     (last (str/split link-name ",")))
 
+(defn- extra-info[source pairs & {:keys [width] :or {width "250px"}}]
+  (if-not (empty? (dissoc source (keys pairs)))
+    [buttons/info-button 
+     :width width
+     :info
+     [:div {:class "extra-info"} 
+      [:div "Extra info"] 
+      [:table [:tbody
+               (for [pair pairs]
+                 (if-not (nil? (get source (key pair)))
+                   [:tr 
+                    [:td (val pair)] 
+                    [:td (get source (key pair))]]))]]]]))
+
+
 (defn text-element [text]
   [re-com/h-box
    :children [(name-and-id "Text" text)
               [:span (get-in text [:attrs :value])]
-              (if-not (nil? (get-in text [:attrs :textStyle]))
-                [:span {:class "left-margin"} (str "Style: " 
-                                                   (get-in text [:attrs :textStyle]))])
-              ]])
+              (extra-info (:attrs text) {:textStyle "Style"})]])
 
 (defn unused-attrs [element used]
   (let [unused (apply dissoc (:attrs element)
@@ -80,4 +92,5 @@
     (let [enabled (bool-attr (get-in element [:attrs attribute]))]
       (md icon (if enabled enabled-text disabled-text)
           enabled))))
+
 
