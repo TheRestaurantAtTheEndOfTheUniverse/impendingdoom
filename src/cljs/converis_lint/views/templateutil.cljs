@@ -50,3 +50,17 @@
                 [:span {:class "left-margin"} (str "Style: " 
                                                    (get-in text [:attrs :textStyle]))])
               ]])
+
+(defn unused-attrs [element used]
+  (let [unused (apply dissoc (:attrs element)
+                       used)]
+    (if-not (empty? unused)
+                  [:span (str unused)])))
+
+(defn first-section [template]
+  (get-in (first (:content (:template template))) [:attrs :name])
+)
+
+(defn is-edit-template[type]
+  (not (nil? (some #{type} '("EDIT_VIEW" "EDIT_VIEW_CHILD")))))
+

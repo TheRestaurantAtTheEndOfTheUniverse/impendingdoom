@@ -31,6 +31,11 @@
    (reaction (:current-template @db))
 ))
 
+(re-frame/register-sub
+ :current-section
+ (fn [db]
+   (reaction (:current-section @db))
+))
 
 (re-frame/register-sub
  :data-model-graph

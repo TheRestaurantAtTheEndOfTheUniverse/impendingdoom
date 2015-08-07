@@ -15,9 +15,9 @@
 
 
 
-(defn display-parts [elem datamodel current-det]
+(defn- display-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
   (for [part (:content elem)]
-    (display-template part datamodel current-det)))
+    (display-template part datamodel current-det :no-indent no-indent)))
 
 
 (defn simple-element [elem]
@@ -85,8 +85,8 @@
   [re-com/v-box
    :children [[re-com/h-box
                :children [(tutil/name-and-id "Style" style)
-                          [:span (str (keys (dissoc (:attrs style) :width :text-align :color 
-                                                    :font-weight :font-size :line-height)))]
+                          (tutil/unused-attrs style [:width :text-align :color 
+                                                    :font-weight :font-size :line-height])
                           (tutil/attribute-span "Color" :color style)
                           (tutil/attribute-span "Font weight" :font-weight style)
                           (tutil/attribute-span "Font size" :font-size style)
@@ -163,9 +163,15 @@
                  [:span {:class "template-link"} link-name]]
                 ]]))
 
-(defn display-template[template datamodel current-det]
+(def no-indent-elements ["column" "table"])
+
+(defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
   (re-com/v-box 
-   :class "element"
+   :class (if (or no-indent 
+                  (not (nil? (some #{(:tag template)} no-indent-elements))))
+            "no-indent-element"
+            "element"
+            )
    :children [
               (condp = (:tag template)
                 "template" [:div 
@@ -205,11 +211,12 @@
                          [:table {:class "template-table"} 
                          [:tbody
                           [:tr (doall (map #(vector :td 
-                                                     (display-template %1 datamodel current-det))
+                                                     (display-template %1 datamodel current-det :no-indent true))
                                             (:content template)))]]]]
                 "style" [:div (style-element template)
                          (display-parts template datamodel current-det)]
-                "column" (display-parts template datamodel current-det)
+                "column" [:div 
+                          (display-parts template datamodel current-det :no-indent true)]
                 "label" [:div (label-element template)
                          (display-parts template datamodel current-det)]
                 "linebreak" [:div (linebreak-element)

@@ -59,7 +59,7 @@
 
 (defn- tree-cgv [root cgvs]
   (let [children (filter #(= (:name root) (:parentChoiceGroupValue %1)) cgvs)]
-    (.log js/console (str "children of " (:name root) ": " (map :name children)))
+    ;(.log js/console (str "children of " (:name root) ": " (map :name children)))
     (if (empty? children)
       (select-keys root [:name :selectable :step] )
       (assoc root :children (map #(tree-cgv %1 cgvs) 
@@ -76,5 +76,3 @@
     (assoc (select-keys cg [:name :tree]) :choice-group-values
            (tree-cgvs (:choiceGroupValues cg)))))
 
-(defn is-edit-template[type]
-  (some #{type} ("EDIT_VIEW" "EDIT_VIEW_CHILD")))

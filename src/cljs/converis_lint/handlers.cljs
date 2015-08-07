@@ -4,6 +4,7 @@
               [converis-lint.graph.frlayout :as graph]
               [converis-lint.modelutils :as mutils]
               [converis-lint.assessment :as asmt]
+              [converis-lint.views.templateutil :as tutil]
               [converis-lint.db :as db]
               [ajax.core :refer [GET POST]]))
 
@@ -80,8 +81,19 @@
 (re-frame/register-handler
  :current-template
  (fn [db [_ template]]
-   (assoc db :current-template template)
+   (let [current-section (if (mutils/is-edit-template (:templateType template))
+                           (tutil/first-section template)
+                           nil)]
+     (assoc db :current-template template
+            :current-section current-section))
    ))
+
+(re-frame/register-handler
+ :current-section
+ (fn [db [_ section]]
+   (assoc db :current-section section)
+   ))
+
 
 (re-frame/register-handler
  :current-data-entity

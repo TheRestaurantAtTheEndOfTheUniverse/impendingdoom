@@ -104,7 +104,8 @@ padding: 0 10px 0 10px;
 .template-table td {
     vertical-align: top;
     margin-bottom: 10px;
-    padding-top: 10px;
+    padding-top: 0px;
+    padding-right: 10px;
 }
 
 .template-tab {
@@ -113,6 +114,27 @@ padding: 0 10px 0 10px;
     padding-left: 5px;
     padding-right: 5px;
     background-color: #ddf;
+}
+
+.template-colhead {
+    border: 1px solid black;
+    font-weight: bold;
+    background-color: GhostWhite;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-right: 5px;
+}
+
+.template-column {
+    border: 1px solid black;
+    background-color: GhostWhite;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-right: 5px;
+}
+
+.template-grid {
+    margin-bottom: 10px;
 }
 
 .extra-info > div {

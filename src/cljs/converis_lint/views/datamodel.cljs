@@ -12,7 +12,9 @@
               [converis-lint.views.outputtemplate :as otemplate]
               [converis-lint.views.edittemplate :as etemplate]
               [converis-lint.assessment :as asmt]
-              [converis-lint.modelutils :as mutils])
+              [converis-lint.modelutils :as mutils]
+              [converis-lint.views.templateutil :as tutil]
+              )
 )
 
 (defn back-button[]
@@ -203,7 +205,6 @@
      [:tbody
      (doall (for [template @templates]
               (do
-                (.log js/console (str "T: " (:dataEntityType template)))
                 ^{:key (str (:templateType template) (:popup template) (:type template))}
                 [:tr
                  [:td               
@@ -226,7 +227,7 @@
         current-template (re-frame/subscribe [:current-template])
         det (re-frame/subscribe [:current-data-entity])
         type (:templateType @current-template)
-        edit? (some #{type} (list "EDIT_VIEW" "EDIT_VIEW_CHILD"))]
+        edit? (tutil/is-edit-template type)]
     (if-not (nil? @current-template)
       (if edit?
         (etemplate/display-template (:template @current-template) @model {:det @det})
