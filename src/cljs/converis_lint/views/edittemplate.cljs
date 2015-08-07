@@ -58,8 +58,6 @@
               ]])
 
 (defn- grid-element [grid]
-  (let [unused (dissoc (:attrs grid)
-                       :extendable :hideForIOT :name :tabsToRender :gridLabelKey)]
     [re-com/h-box
      :children [[:span {:class "element-type right-margin"} "Grid"
                  [:span {:class "element-id left-margin"} 
@@ -67,14 +65,33 @@
                     "+"
                     "-")]
                  [:span {:class "element-id left-margin"} (get-in grid [:attrs :name])]]
-                (if-not (empty? unused)
-                  [:span (str unused)])
+                (tutil/unused-attrs grid [:extendable :hideForIOT :name 
+                                          :tabsToRender :gridLabelKey :showCreateLink 
+                                          :showEmptyFilePanel :showUploadLink :attributeLayout])
                 (for [tab (str/split (get-in grid [:attrs :tabsToRender]) ",")]
                   [:span {:class "template-tab right-margin"} (str tab)]
                   )
+                (tutil/attr-icon grid :showCreateLink "add_circle" 
+                                 "Show create link" "Do not show create link")
+                (tutil/attr-icon grid :showEmptyFilePanel "folder" 
+                                 "Show empty file panel" "Do not show empty file panel")
+                (tutil/attr-icon grid :showUploadLink "file_upload" 
+                                 "Show upload link" "Do not show upload link")
+                (tutil/attr-icon grid :attributeLayout "launch" 
+                                 "Attribute layout" "No attribute layout")
                 (attrs-display grid [:hideForIOT])
                 [:span (get-in grid [:attrs :gridLabelKey])]
-              ]]))
+              ]])
+
+(defn- rel-sequence-element [element]
+    [re-com/h-box
+     :children [[:span {:class "element-type right-margin"} "Sequence"
+                 [:span {:class "element-id left-margin"} 
+                  (str (if-not (get-in element [:attrs :editable])
+                    "not ") "editable")]]
+                (tutil/unused-attrs element [:editable :style])
+                (attrs-display element [:style])
+                ]])
 
 (defn- data-entity-type-element [element]
   (let [unused (dissoc (:attrs element)
@@ -122,7 +139,7 @@
 
 (defn- link-element[link datamodel det]
   (let [unused (dissoc (:attrs link)
-                       :name)
+                       :name :showEditIOLink)
         link-name (get-in link [:attrs :name])
         other-side (tutil/other-side det (get-in link [:attrs :name]) datamodel)
         ]
@@ -131,6 +148,8 @@
                 [:div 
                 (if-not (empty? unused)
                   [:span (str unused)])
+                 (tutil/attr-icon link :showEditIOLink "create" 
+                                 "Show edit entity link" "Do not show edit entity link")
                  [:span {:style {:padding-right "5px"}} "Going from"]  
                  [:span {:class "template-det"} det] 
                  [:span " to "] 
@@ -179,6 +198,8 @@
                                                                        (get-in template [:attrs :name]) datamodel)
                                                       :let (tutil/last-link (get-in template [:attrs :name]))))]
                               
+                "rel_sequence" [:div (rel-sequence-element template)
+                           (display-parts template datamodel current-det)]
                 "column" [:div 
                           [:div {:class "template-column"} (str "Style: "(get-in template [:attrs :style]))]   
                           (display-parts template datamodel current-det :no-indent true)]

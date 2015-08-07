@@ -64,3 +64,20 @@
 (defn is-edit-template[type]
   (not (nil? (some #{type} '("EDIT_VIEW" "EDIT_VIEW_CHILD")))))
 
+(defn bool-attr [attr]
+  (= "true" attr)
+)
+
+(defn md [icon title enabled]
+  [:span [:i {:class "material-icons right-margin" 
+              :style {:font-size "20px"
+                      :color (if enabled "orange" "grey")}
+              :title title} icon]]
+)
+
+(defn attr-icon [element attribute icon enabled-text disabled-text]
+  (if (not (nil? (get-in element [:attrs attribute])))
+    (let [enabled (bool-attr (get-in element [:attrs attribute]))]
+      (md icon (if enabled enabled-text disabled-text)
+          enabled))))
+
