@@ -75,3 +75,6 @@
   (if (:tree cg)
     (assoc (select-keys cg [:name :tree]) :choice-group-values
            (tree-cgvs (:choiceGroupValues cg)))))
+
+(defn is-edit-template[type]
+  (some #{type} ("EDIT_VIEW" "EDIT_VIEW_CHILD")))

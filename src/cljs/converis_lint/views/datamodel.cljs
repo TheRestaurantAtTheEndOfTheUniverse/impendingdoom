@@ -9,7 +9,8 @@
               [converis-lint.handlers :as handler]
               [converis-lint.graph.frlayout :as graph]
               [converis-lint.db :as db]
-              [converis-lint.views.template :as template]
+              [converis-lint.views.outputtemplate :as otemplate]
+              [converis-lint.views.edittemplate :as etemplate]
               [converis-lint.assessment :as asmt]
               [converis-lint.modelutils :as mutils])
 )
@@ -223,11 +224,13 @@
   (let [templates (re-frame/subscribe [:templates])
         model (re-frame/subscribe [:data-model])
         current-template (re-frame/subscribe [:current-template])
-        det (re-frame/subscribe [:current-data-entity])]
+        det (re-frame/subscribe [:current-data-entity])
+        type (:templateType @current-template)
+        edit? (some #{type} (list "EDIT_VIEW" "EDIT_VIEW_CHILD"))]
     (if-not (nil? @current-template)
-         (template/display-template (:template @current-template) @model {:det @det})
-       ))
-)
+      (if edit?
+        (etemplate/display-template (:template @current-template) @model {:det @det})
+        (otemplate/display-template (:template @current-template) @model {:det @det})))))
 
 (defn- template-overview []
     [re-com/h-box
