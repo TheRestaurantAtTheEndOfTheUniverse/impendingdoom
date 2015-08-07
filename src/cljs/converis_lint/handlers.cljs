@@ -81,7 +81,7 @@
 (re-frame/register-handler
  :current-template
  (fn [db [_ template]]
-   (let [current-section (if (mutils/is-edit-template (:templateType template))
+   (let [current-section (if (tutil/is-edit-template (:templateType template))
                            (tutil/first-section template)
                            nil)]
      (assoc db :current-template template
