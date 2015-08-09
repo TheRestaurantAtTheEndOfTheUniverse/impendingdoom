@@ -1,5 +1,6 @@
 (ns converis-lint.views.datamodel
-    (:require [re-frame.core :as re-frame]
+    (:require [clojure.zip :as zip]
+              [re-frame.core :as re-frame]
               [re-com.core :as re-com]
               [re-com.buttons :as buttons]
               [reagent.core :as reagent]
@@ -231,7 +232,7 @@
     (if-not (nil? @current-template)
       (if edit?
         (etemplate/display-template (:template @current-template) @model {:det @det})
-        (otemplate/display-template (:template @current-template) @model {:det @det})))))
+        (otemplate/display-template (zip/xml-zip (:template @current-template)) @model {:det @det})))))
 
 (defn- template-overview []
     [re-com/h-box

@@ -13,12 +13,23 @@
 
 (declare display-template)
 
-
-
 (defn- display-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
+  ;;(.log js/console (str "Elem: " elem))
+  (if (and (not (nil? elem))
+           (zip/branch? elem)
+           (not (nil? (zip/down elem))))
+    (let [first-child (zip/down elem)]
+      (doall (map #(do      
+;;                      (.log js/console (str "Arg: " %1)) 
+;;                      (.log js/console (str "Right: " (:tag (zip/node %1)) " " (zip/right %1))) 
+                      (display-template %1 datamodel current-det :no-indent no-indent)) 
+                  ;(take-while #(not (nil? %1)) (iterate zip/right first-child)))))))
+                  (take-while #(not (nil? %1))
+                              (iterate zip/right first-child)))))))
+
+(defn- xxxdisplay-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
   (for [part (:content elem)]
     (display-template part datamodel current-det :no-indent no-indent)))
-
 
 (defn simple-element [elem]
   [re-com/h-box
@@ -86,20 +97,26 @@
    :children [[re-com/h-box
                :children [(tutil/name-and-id "Style" style)
                           (tutil/unused-attrs style [:width :text-align :color 
-                                                    :font-weight :font-size :line-height])
+                                                    :font-weight :font-size :line-height
+                                                     :padding :border :height])
                           (tutil/attribute-span "Color" :color style)
                           (tutil/attribute-span "Font weight" :font-weight style)
                           (tutil/attribute-span "Font size" :font-size style)
                           (tutil/attribute-span "Line height" :line-height style)
                           (tutil/attribute-span "Width" :width style)
                           (tutil/attribute-span "Text align" :text-align style)
+                          (tutil/attribute-span "Padding" :padding style)
+                          (tutil/attribute-span "Border" :border style)
+                          (tutil/attribute-span "Height" :height style)
                           [buttons/info-button :info 
                            [:div {:class "template-examplebox" 
                                   :style (merge {:background-color "#eee"
                                                  :color "black"} 
                                                 (select-keys (:attrs style) [:color :font-weight 
                                                                              :font-size :line-height
-                                                                             :width :text-align]))} 
+                                                                             :width :text-align
+                                                                             :padding :border
+                                                                             :height]))} 
                             "The quick brown fox jumps over the lazy dog"]]]]
 ]])
 
@@ -165,6 +182,7 @@
 (def no-indent-elements ["column" "table"])
 
 (defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
+  (let [node (zip/node template)]
   (re-com/v-box 
    :class (if (or no-indent 
                   (not (nil? (some #{(:tag template)} no-indent-elements))))
@@ -172,74 +190,78 @@
             "element"
             )
    :children [
-              (condp = (:tag template)
+              (condp = (:tag node)
                 "template" [:div 
                             [:div (str "Output template " (:det current-det))]
                             (display-parts template datamodel current-det)]
                 "converisoutput" [:div 
                                   [:div (str "Output template " (:det current-det))]
                                   (display-parts template datamodel current-det)]
-                "text" [:div (tutil/text-element template)
+                "text" [:div (tutil/text-element node)
                         (display-parts template datamodel current-det)]
-                "iot_attribute" [:div (attribute-element template (:det current-det))
+                "iot_attribute" [:div (attribute-element node (:det current-det))
                         (display-parts template datamodel current-det)]
-                "relt_attribute" [:div (leattribute-element template (:let current-det))
+                "relt_attribute" [:div (leattribute-element node (:let current-det))
                         (display-parts template datamodel current-det)]
                 "iolink" [:div (iolink-element)
                         (display-parts template datamodel current-det)]
                 "block" [:div (block-element)
                         (display-parts template datamodel current-det)]
-                "relation" [:div (link-element template datamodel (:det current-det))
+                "relation" [:div (link-element node datamodel (:det current-det))
                         (display-parts template datamodel 
                                        (assoc current-det 
                                               :det (tutil/other-side (:det current-det) 
-                                                          (get-in template [:attrs :name]) datamodel)
-                                              :let (tutil/last-link (get-in template [:attrs :name]))))]
-                "relationtype" [:div (link-element template datamodel current-det)
+                                                          (get-in node [:attrs :name]) datamodel)
+                                              :let (tutil/last-link (get-in node [:attrs :name]))))]
+                "relationtype" [:div (link-element node datamodel current-det)
                         (display-parts template datamodel 
                                        (assoc current-det 
                                               :det (tutil/other-side (:det current-det) 
-                                                               (get-in template [:attrs :name]) datamodel)
-                                              :let (tutil/last-link (get-in template [:attrs :name]))))]
+                                                               (get-in node [:attrs :name]) datamodel)
+                                              :let (tutil/last-link (get-in node [:attrs :name]))))]
                 "render" [:div (render-element)
                         (display-parts template datamodel current-det)]
-                "eval" [:div (eval-element template)
+                "eval" [:div (eval-element node)
                         (display-parts template datamodel current-det)]
                 "table" [:div
-                         [:div (tutil/name-and-id "Table" template)]
+                         [:div (tutil/name-and-id "Table" node)]
                          [:table {:class "template-table"} 
                          [:tbody
-                          [:tr (doall (map #(vector :td 
-                                                     (display-template %1 datamodel current-det :no-indent true))
-                                            (:content template)))]]]]
-                "style" [:div (style-element template)
+                          [:tr (doall 
+                                (map #(vector :td 
+                                              (display-template %1 datamodel current-det :no-indent true))
+                                     (take-while #(not (nil? %1))
+                                                 (iterate zip/right (zip/down template)))))]]]]
+                "style" [:div (style-element node)
                          (display-parts template datamodel current-det)]
                 "column" [:div 
                           (display-parts template datamodel current-det :no-indent true)]
-                "label" [:div (label-element template)
+                "label" [:div (label-element node)
                          (display-parts template datamodel current-det)]
                 "linebreak" [:div (linebreak-element)
                          (display-parts template datamodel current-det)]
-                "listdisplay" [:div (listdisplay-element template)
+                "listdisplay" [:div (listdisplay-element node)
                          (display-parts template datamodel current-det)]
-                "or" [:div (simple-element template)
+                "or" [:div (simple-element node)
                          (display-parts template datamodel current-det)]
-                "and" [:div (simple-element template)
+                "and" [:div (simple-element node)
                          (display-parts template datamodel current-det)]
-                "paginator" [:div (paginator-element template)
+                "paginator" [:div (paginator-element node)
                          (display-parts template datamodel current-det)]
-                "separateddisplay" [:div (separated-display-element template)
+                "separateddisplay" [:div (separated-display-element node)
                          (display-parts template datamodel current-det)]
-                "image" [:div (image-element template)
+                "image" [:div (image-element node)
                          (display-parts template datamodel current-det)]
-                "hline" [:div (simple-element template)
+                "hline" [:div (simple-element node)
                          (display-parts template datamodel current-det)]
-                "infoobjecttype" [:div (data-entity-type-element template)
+                "treedisplay" [:div (simple-element node)
+                         (display-parts template datamodel current-det)]
+                "infoobjecttype" [:div (data-entity-type-element node)
                          (display-parts template datamodel current-det)]
 
-                [:div {:style {:border "1px solid red"}}(str (:tag template) template)
+                [:div {:style {:border "1px solid red"}}(str (:tag node) node)
                  (display-parts template datamodel current-det)]
                 )
-              ]))
+              ])))
 
 
