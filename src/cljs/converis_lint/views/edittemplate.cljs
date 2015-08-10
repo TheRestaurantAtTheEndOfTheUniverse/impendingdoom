@@ -11,18 +11,30 @@
 
 (declare display-template)
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
+(defn all-children [node]
+   (take-while #(not (nil? %1))
+              (iterate zip/right (zip/down node))))
+
 (defn current-section[]
   (let [section (re-frame/subscribe [:current-section])]
         @section)
 )
 (defn named-section[template name]
-  (first (filter #(= (get-in %1 [:attrs :name]) name) 
-              (:content template)))
-)
+  (first (filter #(= (get-in (zip/node %1) [:attrs :name]) name) 
+              (all-children template))))
 
 (defn- display-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
-  (for [part (:content elem)]
-    (display-template part datamodel current-det :no-indent no-indent)))
+  (if (and (not (nil? elem))
+           (zip/branch? elem)
+           (not (nil? (zip/down elem))))
+    (let [first-child (zip/down elem)]
+      (doall (map #(display-template %1 datamodel current-det :no-indent no-indent) 
+                  (take-while #(not (nil? %1))
+                              (iterate zip/right first-child)))))))
 
 (defn- attrs-display[element attrs]
   (map #(tutil/attribute-span %1 element) attrs)
@@ -47,18 +59,19 @@
                      "Yes" "No")]]
              ]]]])
 
-
 (defn- section-selector[template]
   (let [sections (map #(get-in %1 [:attrs :name]) (:content template))
         section (current-section)
         model-value {:id section :label section}
         choices (mapv #(merge {:id %1 :label %1}) sections)]
-    [re-com/single-dropdown
-     :choices choices
-     :model section
-     :on-change #(re-frame/dispatch [:current-section %1])
-     ])
-  )
+    (if-not (empty? sections)
+      [re-com/single-dropdown
+       :choices choices
+       :model section
+       :class "section-selector"
+       :on-change #(re-frame/dispatch [:current-section %1])
+       ])
+    ))
 
 
 (defn- section-element [section]
@@ -196,69 +209,75 @@
                                           :style "Style"} :width "500px")]]
 )
 
-(def no-indent-elements ["column" "colhead"])
+(def no-indent-elements ["column" "colhead" "section"])
 
-(defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
-  [re-com/v-box 
-   :class (if (or no-indent 
-                  (not (nil? (some #{(:tag template)} no-indent-elements))))
-            "no-indent-element"
-            "element"
-            )
-   :children [(condp = (:tag template)
-                "template" [:div 
-                            [:div (str "Edit template " (:det current-det))]
-                            (section-selector template)
-                            (display-template (named-section template (current-section))
-                                              datamodel current-det)] 
-                "section" [:div (section-element template)
+((defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
+   (let [node (zip/node template)]
+     (.log js/console (str "Node: " (:tag node)))
+     [re-com/v-box 
+      :class (if (or no-indent 
+                     (not (nil? (some #{(:tag node)} no-indent-elements))))
+               "no-indent-element"
+               "element"
+               )
+      :children [(condp = (:tag node)
+                   "template" [:div 
+                               [:div (str "Edit template " (:det current-det))]
+                               (section-selector node)
+                               (let [current-section (named-section template (current-section))]
+                                 (if-not (nil? current-section)
+                                   (display-template current-section
+                                                     datamodel current-det)))] 
+                   "section" [:div (section-element node)
+                              (display-parts template datamodel current-det)]
+                   "infobar" [:div (infobar-element template)
+                              (display-parts template datamodel current-det)]
+                   "grid" [:div {:class "template-grid"}
+                           (grid-element node)
                            (display-parts template datamodel current-det)]
-                "infobar" [:div (infobar-element template)
+                   "infoobjecttype" [:div (data-entity-type-element node)
+                                     (display-parts template datamodel current-det)]
+                   "iot_attribute" [:div (attribute-element node (:det current-det) 
+                                                            "template-det" "Attribute")
+                                    (display-parts template datamodel current-det)]
+                   "text" [:div (tutil/text-element node)
                            (display-parts template datamodel current-det)]
-                "grid" [:div {:class "template-grid"}
-                        (grid-element template)
-                        (display-parts template datamodel current-det)]
-                "infoobjecttype" [:div (data-entity-type-element template)
-                           (display-parts template datamodel current-det)]
-                "iot_attribute" [:div (attribute-element template (:det current-det) 
-                                                         "template-det" "Attribute")
-                           (display-parts template datamodel current-det)]
-                "text" [:div (tutil/text-element template)
-                           (display-parts template datamodel current-det)]
-                "label" [:div (label-element template)
-                           (display-parts template datamodel current-det)]
-                "filteredlist" [:div 
-                                [:span {:class "element-type right-margin"} "Filtered list"
-                                 (if-not (nil? (get-in template [:attrs :name]))
-                                   [:span {:class "element-id left-margin"} 
-                                    (get-in template [:attrs :name])])]
-                                (display-parts template datamodel current-det)]
-                "relt_attribute" [:div (attribute-element template (:let current-det) 
-                                                          "template-link" "Link attribute")
-                           (display-parts template datamodel current-det)]
-                "relationtype" [:div (link-element template datamodel (:det current-det))
-                                (display-parts template datamodel  
-                                               (assoc current-det 
-                                                      :det (tutil/other-side (:det current-det) 
-                                                                       (get-in template [:attrs :name]) datamodel)
-                                                      :let (tutil/last-link (get-in template [:attrs :name]))))]
-                              
-                "rel_sequence" [:div (rel-sequence-element template)
-                           (display-parts template datamodel current-det)]
-                "column" [:div 
-                          [:div {:class "template-column"} (str "Style: "(get-in template [:attrs :style]))]   
-                          (display-parts template datamodel current-det :no-indent true)]
-                "colhead" [:div {:class "template-colhead"}
-                           (let [attrs (:attrs (first (:content template)))]
-                             (str (:bundleName attrs) "." (:labelKey attrs)))]
-                "table" [:div
-                         (table-element template)
-                         [:table {:class "template-table"} 
-                         [:tbody
-                          [:tr (doall (map #(vector :td 
-                                                    (display-template %1 datamodel current-det))
-                                            (:content template)))]]]]
-                [:div {:style {:border "1px solid green"}}
-                 (str (:tag template) (:attrs template))               
-                 (display-parts template datamodel current-det)                  
-                ])]])
+                   "label" [:div (label-element node)
+                            (display-parts template datamodel current-det)]
+                   "filteredlist" [:div 
+                                   [:span {:class "element-type right-margin"} "Filtered list"
+                                    (if-not (nil? (get-in node [:attrs :name]))
+                                      [:span {:class "element-id left-margin"} 
+                                       (get-in node [:attrs :name])])]
+                                   (display-parts template datamodel current-det)]
+                   "relt_attribute" [:div (attribute-element node (:let current-det) 
+                                                             "template-link" "Link attribute")
+                                     (display-parts template datamodel current-det)]
+                   "relationtype" [:div (link-element node datamodel (:det current-det))
+                                   (display-parts template datamodel  
+                                                  (assoc current-det 
+                                                         :det (tutil/other-side (:det current-det) 
+                                                                                (get-in node [:attrs :name]) datamodel)
+                                                         :let (tutil/last-link (get-in node [:attrs :name]))))]
+                   
+                   "rel_sequence" [:div (rel-sequence-element node)
+                                   (display-parts template datamodel current-det)]
+                   "column" [:div 
+                             [:div {:class "template-column"} (str "Style: "(get-in node [:attrs :style]))]   
+                             (display-parts template datamodel current-det :no-indent true)]
+                   "colhead" [:div {:class "template-colhead"}
+                              (let [attrs (:attrs (zip/node (zip/down template)))]
+                                (str (:bundleName attrs) "." (:labelKey attrs)))]
+                   "table" [:div
+                            (table-element node)
+                            [:table {:class "template-table"} 
+                             [:tbody
+                             [:tr (doall 
+                                   (map #(vector :td 
+                                                 (display-template %1 datamodel current-det :no-indent true))
+                                        (take-while #(not (nil? %1))
+                                                    (iterate zip/right (zip/down template)))))]]]]
+                   [:div {:style {:border "1px solid green"}}
+                    (str (:tag node) (:attrs node))               
+                    (display-parts template datamodel current-det)                  
+                    ])]])))

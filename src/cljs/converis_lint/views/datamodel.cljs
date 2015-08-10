@@ -231,7 +231,7 @@
         edit? (tutil/is-edit-template type)]
     (if-not (nil? @current-template)
       (if edit?
-        (etemplate/display-template (:template @current-template) @model {:det @det})
+        (etemplate/display-template (zip/xml-zip (:template @current-template)) @model {:det @det})
         (otemplate/display-template (zip/xml-zip (:template @current-template)) @model {:det @det})))))
 
 (defn- template-overview []
