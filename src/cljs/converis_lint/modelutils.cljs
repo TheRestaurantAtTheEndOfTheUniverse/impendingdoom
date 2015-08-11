@@ -23,6 +23,11 @@
 (defn data-entity [datamodel id] 
   (get (:dataentitytypes datamodel) id))
 
+(defn data-entity-attribute [datamodel det-name attr-name]
+  (let [det (data-entity datamodel det-name)
+        attrs (:attributeDefinitions det)]
+    (first (filter #(= attr-name (:name %1)) attrs))))
+
 (defn data-entity-name [id]
   id
 )

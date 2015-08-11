@@ -10,26 +10,22 @@
 
 )
 
+(defn log [msg]
+  (.log js/console msg)
+)
 
 (declare display-template)
 
+(defn all-children [node]
+   (take-while #(not (nil? %1))
+              (iterate zip/right (zip/down node))))
+
 (defn- display-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
-  ;;(.log js/console (str "Elem: " elem))
   (if (and (not (nil? elem))
            (zip/branch? elem)
            (not (nil? (zip/down elem))))
-    (let [first-child (zip/down elem)]
-      (doall (map #(do      
-;;                      (.log js/console (str "Arg: " %1)) 
-;;                      (.log js/console (str "Right: " (:tag (zip/node %1)) " " (zip/right %1))) 
-                      (display-template %1 datamodel current-det :no-indent no-indent)) 
-                  ;(take-while #(not (nil? %1)) (iterate zip/right first-child)))))))
-                  (take-while #(not (nil? %1))
-                              (iterate zip/right first-child)))))))
-
-(defn- xxxdisplay-parts [elem datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
-  (for [part (:content elem)]
-    (display-template part datamodel current-det :no-indent no-indent)))
+      (doall (map #(display-template %1 datamodel current-det :no-indent no-indent) 
+                  (all-children elem)))))
 
 (defn simple-element [elem]
   [re-com/h-box
@@ -263,5 +259,54 @@
                  (display-parts template datamodel current-det)]
                 )
               ])))
+
+
+(def template-type-weights
+  {"STRING" 1
+   "TEXT" 5
+   "BOOLEAN" 0.1
+   "NUMBER" 0.25
+   "DATE" 0.35
+   "CGV" 0.2}
+)
+
+(def passthrough-elements 
+  ["template"
+   "converisoutput"
+   "style"
+   "render"
+   "and"
+   "or"
+   "block"]
+)
+
+(declare evaluate-template)
+
+(defn evaluate-parts [template datamodel state]
+  (reduce #(evaluate-template %2 datamodel %1)
+          state
+          (all-children template)))
+
+(defn evaluate-template[template datamodel state]
+  (let [node (zip/node template)]
+    (condp = (:tag node)
+      "text" (evaluate-parts template datamodel (assoc state :weight (+ 0.1 (:weight state))))
+      "label" (evaluate-parts template datamodel (assoc state :weight (+ 0.2 (:weight state))))
+      "iot_attribute" (let [attr-name (get-in node [:attrs :name])
+                            current-attr (mutils/data-entity-attribute datamodel 
+                                                                       (:det state) attr-name)]
+                        (evaluate-parts template datamodel 
+                                        (assoc state 
+                                               :weight (+ (get template-type-weights 
+                                                               (:dataType current-attr)) 
+                                                          (:weight state))))
+                        )
+      "eval" (evaluate-parts template datamodel (assoc state :eval (inc (:eval state))))
+      (do
+        (if (nil? (some #{(:tag node)} passthrough-elements))
+          (log (str "Unhandled: " (:tag node))))
+        (evaluate-parts template datamodel state))
+      )
+    ))
 
 

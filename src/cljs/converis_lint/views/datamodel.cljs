@@ -222,6 +222,10 @@
             )]])
   )
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
 (defn- current-template[]
   (let [templates (re-frame/subscribe [:templates])
         model (re-frame/subscribe [:data-model])
@@ -229,6 +233,10 @@
         det (re-frame/subscribe [:current-data-entity])
         type (:templateType @current-template)
         edit? (tutil/is-edit-template type)]
+    
+    (log (str (otemplate/evaluate-template (zip/xml-zip (:template @current-template)) 
+                                 @model 
+                                 {:det @det :weight 0 :eval 0})))
     (if-not (nil? @current-template)
       (if edit?
         (etemplate/display-template (zip/xml-zip (:template @current-template)) @model {:det @det})
