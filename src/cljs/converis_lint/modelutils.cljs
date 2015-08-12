@@ -53,6 +53,12 @@
     (get (:linkentitytypes data-model) name))
 )
 
+(defn link-entity-attribute [datamodel link-name attr-name]
+  (let [link (get-link-entity-type datamodel link-name false)
+        attrs (:attributeDefinitions link)]
+    (first (filter #(= attr-name (:name %1)) attrs))))
+
+
 (defn connected-data-entities [db entity]
   (reduce #(if (= entity (:left %2))
              (conj %1 (:right %2))

@@ -277,7 +277,44 @@
    "render"
    "and"
    "or"
-   "block"]
+   "block"
+   "linebreak"
+   "listdisplay"
+   "hline"
+   "text"
+   "separateddisplay"
+   "column"
+   "table"
+   "iolink"
+   "paginator"]
+)
+
+(def element-complexity
+  { "template" 0
+    "converisoutput" 0
+    "text" 0
+    "iot_attribute" 0
+    "relt_attribute" 0
+    "iolink" 0
+    "block" 0
+    "relation" 1
+    "relationtype" 1
+    "render" 0
+    "eval" 0.5
+    "table" 0
+    "style" 0.5
+    "column" 1
+    "label" 0
+    "linebreak" 0
+    "listdisplay" 0
+    "or" 0.2
+    "and" 0.2
+    "paginator" 2
+    "separateddisplay" 0
+    "image" 0
+    "hline" 0
+    "treedisplay" 0
+    "infoobjecttype" 0}
 )
 
 (declare evaluate-template)
@@ -288,10 +325,12 @@
           (all-children template)))
 
 (defn evaluate-template[template datamodel state]
-  (let [node (zip/node template)]
+  (let [node (zip/node template)
+        complexity (get element-complexity (:tag node))]
     (condp = (:tag node)
-      "text" (evaluate-parts template datamodel (assoc state :weight (+ 0.1 (:weight state))))
-      "label" (evaluate-parts template datamodel (assoc state :weight (+ 0.2 (:weight state))))
+      "label" (evaluate-parts template datamodel (assoc state 
+                                                        :weight (+ 0.2 (:weight state))
+                                                        :complexity (+ complexity (:complexity state))))
       "iot_attribute" (let [attr-name (get-in node [:attrs :name])
                             current-attr (mutils/data-entity-attribute datamodel 
                                                                        (:det state) attr-name)]
@@ -299,13 +338,34 @@
                                         (assoc state 
                                                :weight (+ (get template-type-weights 
                                                                (:dataType current-attr)) 
-                                                          (:weight state))))
+                                                          (:weight state))
+                                               :complexity (+ complexity (:complexity state))))
                         )
-      "eval" (evaluate-parts template datamodel (assoc state :eval (inc (:eval state))))
+      "relt_attribute" (let [attr-name (get-in node [:attrs :name])
+                            current-attr (mutils/link-entity-attribute datamodel 
+                                                                       (:let state) attr-name)]
+                         (evaluate-parts template datamodel 
+                                        (assoc state 
+                                               :weight (+ (get template-type-weights 
+                                                               (:dataType current-attr)) 
+                                                          (:weight state))
+                                               :complexity (+ complexity (:complexity state)))))
+      "eval" (evaluate-parts template datamodel (assoc state :eval (inc (:eval state))
+                                                       :complexity (+ complexity (:complexity state))))
+      "relation" (evaluate-parts template datamodel 
+                                 (assoc state 
+                                        :det (tutil/other-side (:det state) 
+                                                               (get-in node [:attrs :name]) datamodel)
+                                        :let (tutil/last-link (get-in node [:attrs :name]))
+                                        :walk-depth (+ (tutil/link-count (get-in node [:attrs :name])) 
+                                                       (:walk-depth state))
+                                        :complexity (+ 0.5 (:complexity state))))
+      "image" (evaluate-parts template datamodel (assoc state :weight (+ 5 (:weight state))))
       (do
         (if (nil? (some #{(:tag node)} passthrough-elements))
           (log (str "Unhandled: " (:tag node))))
-        (evaluate-parts template datamodel state))
+        (evaluate-parts template datamodel (assoc state
+                                                       :complexity (+ 0.5 (:complexity state)))))
       )
     ))
 

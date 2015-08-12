@@ -1,21 +1,21 @@
 (ns converis-lint.views.datamodel
-    (:require [clojure.zip :as zip]
-              [re-frame.core :as re-frame]
-              [re-com.core :as re-com]
-              [re-com.buttons :as buttons]
-              [reagent.core :as reagent]
-              [goog.string :as gstring] 
-              [goog.string.format :as gformat]
-              [converis-lint.config :as config]
-              [converis-lint.handlers :as handler]
-              [converis-lint.graph.frlayout :as graph]
-              [converis-lint.db :as db]
-              [converis-lint.views.outputtemplate :as otemplate]
-              [converis-lint.views.edittemplate :as etemplate]
+    (:require [clojure.string :as str]
+              [clojure.zip :as zip]
               [converis-lint.assessment :as asmt]
+              [converis-lint.config :as config]
+              [converis-lint.db :as db]
+              [converis-lint.graph.frlayout :as graph]
+              [converis-lint.handlers :as handler]
               [converis-lint.modelutils :as mutils]
+              [converis-lint.views.edittemplate :as etemplate]
+              [converis-lint.views.outputtemplate :as otemplate]
               [converis-lint.views.templateutil :as tutil]
-              )
+              [goog.string :as gstring]
+              [goog.string.format :as gformat]
+              [reagent.core :as reagent]
+              [re-com.buttons :as buttons]
+              [re-com.core :as re-com]
+              [re-frame.core :as re-frame])
 )
 
 (defn back-button[]
@@ -226,6 +226,26 @@
   (.log js/console msg)
 )
 
+(defn- current-template-eval[]
+  (let [current-template (re-frame/subscribe [:current-template])]        
+    (if-not (nil? @current-template)
+      (let [templates (re-frame/subscribe [:templates])
+            model (re-frame/subscribe [:data-model])
+            det (re-frame/subscribe [:current-data-entity])
+            type (:templateType @current-template)
+            edit? (tutil/is-edit-template type)
+            result (if edit?
+                     nil
+                     (otemplate/evaluate-template (zip/xml-zip (:template @current-template)) 
+                                                  @model 
+                                                  {:det @det :weight 0 :eval 0}))]
+        [:div {:class "template-eval"}
+         [:table [:tbody 
+                  [:tr [:td "Data weight"] [:td (gstring/format "%.2f" (:weight result))]]                     
+                  [:tr [:td "Complexity"] [:td (:complexity result)]]
+                  [:tr [:td "Walk depth"] [:td (:walk-depth result)]]
+                  ]]]))))
+
 (defn- current-template[]
   (let [templates (re-frame/subscribe [:templates])
         model (re-frame/subscribe [:data-model])
@@ -246,8 +266,11 @@
     [re-com/h-box
      :padding "0 0 0 10px"
      :children [ (template-overview-table)
-                 [current-template]
-                ]]
+                 [re-com/v-box
+                  :children [
+                             [current-template-eval]
+                             [current-template]
+                ]]]]
 )
 
 (defn- performance [data-model current-entity]

@@ -153,6 +153,18 @@ padding: 0 10px 0 10px;
 }
 
 
+.template-eval {
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.template-eval table td:first-child {
+  font-weight: bold;
+  padding-right: 2em;
+}
+
+
+
 .element {
     padding-left: 10px;
     padding-bottom: 2px;

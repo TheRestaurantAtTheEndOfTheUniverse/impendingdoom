@@ -42,6 +42,9 @@
 (defn last-link [link-name]
     (last (str/split link-name ",")))
 
+(defn link-count [link-name]
+    (count (str/split link-name ",")))
+
 (defn- extra-info[source pairs & {:keys [width] :or {width "250px"}}]
   (if-not (empty? (dissoc source (keys pairs)))
     [buttons/info-button 
