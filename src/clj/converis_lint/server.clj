@@ -6,7 +6,9 @@
             [clojure.zip :as zip]
             [compojure.core :refer :all]
             [compojure.handler :as handler]
-            [converis-lint.templates :as templates]
+            [converis-lint.data.templates :as templates]
+            [converis-lint.data.choicegroups :as choicegroups]
+            [converis-lint.data.datamodel :as datamodel]
             [clojure.stacktrace]
             [ring.util.response :refer :all])
   (:import [java.io StringReader])
@@ -49,6 +51,16 @@
            (content-type "application/json"))
        )
   
+  (GET "/choicegroups" [] 
+       (-> (json/write-str (mapv choicegroups/convert-choicegroup choicegroups/choicegroups))
+           (response)
+           (content-type "application/json"))
+       )
+  (GET "/datamodel" [] 
+       (-> (json/write-str datamodel/datamodel)
+           (response)
+           (content-type "application/json"))
+       )
 
 
   (GET "/" [] 

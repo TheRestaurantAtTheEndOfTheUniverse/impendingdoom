@@ -325,6 +325,7 @@
           (all-children template)))
 
 (defn evaluate-template[template datamodel state]
+  (log (str state))
   (let [node (zip/node template)
         complexity (get element-complexity (:tag node))]
     (condp = (:tag node)

@@ -33,7 +33,7 @@
 )
 
 (defn data-entity-list [datamodel]
-  (reduce #(conj %1 (assoc {} :id (key %2) :label (key %2)))
+  (reduce #(conj %1 (assoc {} :id (key %2) :label (name (key %2))))
           []
           (:dataentitytypes datamodel)))
 
@@ -44,7 +44,7 @@
 (defn get-link-entity-type [data-model name ignore-case]
   (if ignore-case
     (let [matches (filter #(= (str/upper-case name)
-                      (str/upper-case (key %1)))
+                      (str/upper-case (:name (val %1))))
                    (:linkentitytypes data-model))          
           ]
       (if-not (empty? matches)

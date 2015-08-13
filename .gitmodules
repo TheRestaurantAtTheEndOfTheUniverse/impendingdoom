@@ -1,3 +1,6 @@
 [submodule "data"]
 	path = src/cljs/converis_lint/data
 	url = gitolite@192.168.0.8:/converis-lint-data.git
+[submodule "server-data"]
+	path = src/clj/converis_lint/data
+	url = gitolite@192.168.0.8:/converis-lint-data.git

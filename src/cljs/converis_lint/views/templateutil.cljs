@@ -25,7 +25,13 @@
   )
 )
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
+
 (defn- other-side [det link-name datamodel]
+  (log (str "Other side" det " " link-name))
   (if (string? link-name)
     (if (> (.indexOf link-name ",") -1)
       (recur det (str/split link-name ",") datamodel) 

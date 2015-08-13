@@ -251,7 +251,8 @@
                                               :text-anchor "middle"
                                               :style {:font-size "12px"
                                                       }}
-                                       (:id node)]
+                                         (str (:id node))
+                                         ]
        ))
      ]))
 
@@ -262,9 +263,10 @@
          :padding "0 0 0 10px"
          :children [(graph-component @data-model-graph)
                     [re-com/selection-list
-                     :choices (mapv #(merge {:id %1 :label %1}) 
-                                    (sort-by #(clojure.string/upper-case %1) (:all-entities @data-model-graph)))
-                     :model (set (mapv #(merge {:id %1 :label %1}) 
+                     :choices (mapv #(merge {:id %1 :label (name %1)}) 
+                                    (sort-by #(clojure.string/upper-case (name %1))
+                                             (:all-entities @data-model-graph)))
+                     :model (set (mapv #(merge {:id %1 :label (name %1)}) 
                                     (:included-entities @data-model-graph)))
                      :as-exclusions? false
                      :max-height (str (+ component-height padding padding) "px")                    

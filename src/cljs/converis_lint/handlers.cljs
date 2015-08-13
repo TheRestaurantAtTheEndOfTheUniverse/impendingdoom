@@ -36,21 +36,46 @@
     (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
     ))
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
 (defn load-templates-handler[templates]
   (re-frame/dispatch [:templates templates])
 )
 
 (defn- fetch-templates [entity]
+  (log (str "Getting templates for " entity))
   (GET (str "/templates/" entity) {:handler load-templates-handler 
                                    :response-format :json
                                    :keywords? true}))
+
+(defn load-choice-groups-handler[cgs]
+  (re-frame/dispatch [:choice-groups cgs])
+)
+
+(defn- fetch-choice-groups []
+  (GET "/choicegroups" {:handler load-choice-groups-handler 
+                        :response-format :json
+                        :keywords? true}))
+
+(defn load-data-model-handler[model]
+  (re-frame/dispatch [:data-model model])
+)
+
+(defn- fetch-data-model []
+  (GET "/datamodel" {:handler load-data-model-handler 
+                        :response-format :json
+                        :keywords? true}))
 
 
 (re-frame/register-handler
  :initialize-db
  (fn  [_ _]
-   (fetch-templates (:current-data-entity db/default-db))
-   (assoc db/default-db :data-model-graph (init-graph db/default-db))))
+   (fetch-choice-groups)
+   (fetch-data-model)
+   db/default-db
+))
 
 (re-frame/register-handler
  :name-change
@@ -70,6 +95,22 @@
  :screen
  (fn [db [_ screen]]
    (assoc db :screen screen)))
+
+(re-frame/register-handler
+ :choice-groups
+ (fn [db [_ cgs]]
+   (assoc db :choice-groups cgs)))
+
+
+(re-frame/register-handler
+ :data-model
+ (fn [db [_ model]]
+   (let [db-with-model (assoc db :data-model model)]
+     (fetch-templates (name (first (sort (keys (:dataentitytypes model))))))
+     (assoc db-with-model 
+            :data-model-graph (init-graph db-with-model)
+            :current-data-entity (first (sort (keys (:dataentitytypes model))))))
+))
 
 (re-frame/register-handler
  :templates
@@ -103,7 +144,7 @@
 (re-frame/register-handler
  :current-data-entity
  (fn [db [_ entity]]
-   (fetch-templates entity)
+   (fetch-templates (name entity))
    (assoc db :current-data-entity entity
           :current-template nil
           :current-section nil)
