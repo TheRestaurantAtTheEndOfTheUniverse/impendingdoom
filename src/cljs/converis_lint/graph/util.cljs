@@ -27,7 +27,7 @@
   (let [node-lookup (node-lookup-map graph)
         included-entities (:included-entities graph)
         included-names (mapv name included-entities)]
-    (log (str node-lookup))
+
     (assoc graph 
            :nodes
            (mapv #(if (contains? node-lookup (name (key %1)))

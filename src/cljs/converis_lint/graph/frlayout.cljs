@@ -256,26 +256,33 @@
        ))
      ]))
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
 
 (defn selectable-graph[]
-  (let [data-model-graph (re-frame/subscribe [:data-model-graph])]
+  (let [data-model-graph (re-frame/subscribe [:data-model-graph])
+        choices (mapv #(merge {:id %1 :label (name %1)}) 
+                                    (sort-by #(clojure.string/upper-case (name %1))
+                                             (:all-entities @data-model-graph)))
+        model (set (:included-entities @data-model-graph))
+        ]
         [re-com/h-box
          :padding "0 0 0 10px"
          :children [(graph-component @data-model-graph)
                     [re-com/selection-list
-                     :choices (mapv #(merge {:id %1 :label (name %1)}) 
-                                    (sort-by #(clojure.string/upper-case (name %1))
-                                             (:all-entities @data-model-graph)))
-                     :model (set (mapv #(merge {:id %1 :label (name %1)}) 
-                                    (:included-entities @data-model-graph)))
+                     :choices choices
+                     :model model
                      :as-exclusions? false
                      :max-height (str (+ component-height padding padding) "px")                    
                      :multi-select?  true
                      :disabled?      false
-                     :required?      false
+                     :required?      true
+                     :id-fn :id
                      :label-fn :label
                      :on-change #(re-frame/dispatch 
-                                  [:data-model-graph-visible-entities (map :id %)])
+                                  [:data-model-graph-visible-entities %])
                      ]
                     ]]))
 

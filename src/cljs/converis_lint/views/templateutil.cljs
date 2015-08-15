@@ -10,7 +10,7 @@
 )
 
 (defn name-and-id [name elem]
-  (list [:span {:class "element-type right-margin"} name
+  (list ^{:key "element-type"} [:span {:class "element-type right-margin"} name
         (if-not (nil? (get-in elem [:attrs :id]))
           [:span {:class "element-id left-margin"} (get-in elem [:attrs :id])])])
 )
@@ -31,7 +31,6 @@
 
 
 (defn- other-side [det link-name datamodel]
-  (log (str "Other side" det " " link-name))
   (if (string? link-name)
     (if (> (.indexOf link-name ",") -1)
       (recur det (str/split link-name ",") datamodel) 

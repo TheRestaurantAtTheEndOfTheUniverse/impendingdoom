@@ -20,8 +20,22 @@
   (not (nil? (some #{attr} internal-attributes)))
 )
 
+(defn log [msg]
+  (.log js/console msg)
+)
+
+(defn keywordize[id]
+  (if (keyword? id)
+    id
+    (keyword id)))
+
+(defn unkeywordize[id]
+  (if (keyword? id)
+    (name id)
+    id))
+
 (defn data-entity [datamodel id] 
-  (get (:dataentitytypes datamodel) id))
+  (get (:dataentitytypes datamodel) (keywordize id)))
 
 (defn data-entity-attribute [datamodel det-name attr-name]
   (let [det (data-entity datamodel det-name)
@@ -41,17 +55,19 @@
   (vals (:linkentitytypes data-model))
 )
 
-(defn get-link-entity-type [data-model name ignore-case]
-  (if ignore-case
-    (let [matches (filter #(= (str/upper-case name)
-                      (str/upper-case (:name (val %1))))
-                   (:linkentitytypes data-model))          
-          ]
-      (if-not (empty? matches)
-        (val (first matches))
-        nil))
-    (get (:linkentitytypes data-model) name))
-)
+(defn get-link-entity-type [data-model link-name ignore-case]
+  (let [keyword-name (keywordize link-name)
+        string-name (unkeywordize link-name)]
+    (if ignore-case
+      (let [matches (filter #(= (str/upper-case string-name)
+                                (str/upper-case (:name (val %1))))
+                            (:linkentitytypes data-model))          
+            ]
+        (if-not (empty? matches)
+          (val (first matches))
+          nil))
+      (get (:linkentitytypes data-model) keyword-name)))
+  )
 
 (defn link-entity-attribute [datamodel link-name attr-name]
   (let [link (get-link-entity-type datamodel link-name false)
@@ -60,13 +76,15 @@
 
 
 (defn connected-data-entities [db entity]
-  (reduce #(if (= entity (:left %2))
-             (conj %1 (:right %2))
-             (if (= entity (:right %2))
-               (conj %1 (:left %2))
+  (log (str "Connected " entity))
+  (let [entity-name (name entity)]
+  (reduce #(if (= entity-name (:left %2))
+             (conj %1 (keyword (:right %2)))
+             (if (= entity-name (:right %2))
+               (conj %1 (keyword (:left %2)))
                %1))
           #{}
-          (get-link-entity-types (:data-model db))))
+          (get-link-entity-types (:data-model db)))))
 
 (defn- tree-cgv [root cgvs]
   (let [children (filter #(= (:name root) (:parentChoiceGroupValue %1)) cgvs)]

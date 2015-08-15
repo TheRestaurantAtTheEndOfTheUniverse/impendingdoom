@@ -36,16 +36,11 @@
     (assoc db :data-model-graph (graph/fr-layout updated-graph 1 50))
     ))
 
-(defn log [msg]
-  (.log js/console msg)
-)
-
 (defn load-templates-handler[templates]
   (re-frame/dispatch [:templates templates])
 )
 
 (defn- fetch-templates [entity]
-  (log (str "Getting templates for " entity))
   (GET (str "/templates/" entity) {:handler load-templates-handler 
                                    :response-format :json
                                    :keywords? true}))

@@ -54,9 +54,9 @@
 (defn- attribute-element[attribute det]
   [re-com/h-box
    :children [(tutil/name-and-id "Attribute" attribute)
-              [:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
-              [:span {:class "left-margin right-margin"} "of"] 
-              [:span {:class "template-det"} det]
+              ^{:key "attr-name"}[:span {:class "template-attr"} (get-in attribute [:attrs :name])] 
+              ^{:key "of"}[:span {:class "left-margin right-margin"} "of"] 
+              ^{:key "attr-det"}[:span {:class "template-det"} det]
               ]])
 
 (defn- leattribute-element[attribute det]
@@ -126,7 +126,7 @@
   [re-com/h-box
    :children [(tutil/name-and-id "Eval" eval)
               (condp = (get-in eval [:attrs :operator])
-                "set" (list [:div[:span {:class "right-margin"} "When"]
+                "set" (list ^{:key "not-empty"}[:div[:span {:class "right-margin"} "When"]
                             [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
                             [:span " is not empty"]])
                 "notset" (list [:span {:class "right-margin"} "When"]
@@ -209,7 +209,7 @@
                                               :det (tutil/other-side (:det current-det) 
                                                           (get-in node [:attrs :name]) datamodel)
                                               :let (tutil/last-link (get-in node [:attrs :name]))))]
-                "relationtype" [:div (link-element node datamodel current-det)
+                "relationtype" [:div (link-element node datamodel (:det current-det))
                         (display-parts template datamodel 
                                        (assoc current-det 
                                               :det (tutil/other-side (:det current-det) 
@@ -325,7 +325,6 @@
           (all-children template)))
 
 (defn evaluate-template[template datamodel state]
-  (log (str state))
   (let [node (zip/node template)
         complexity (get element-complexity (:tag node))]
     (condp = (:tag node)
@@ -344,7 +343,7 @@
                         )
       "relt_attribute" (let [attr-name (get-in node [:attrs :name])
                             current-attr (mutils/link-entity-attribute datamodel 
-                                                                       (:let state) attr-name)]
+                                                                       (:let state) attr-name)]                         
                          (evaluate-parts template datamodel 
                                         (assoc state 
                                                :weight (+ (get template-type-weights 
@@ -366,7 +365,7 @@
         (if (nil? (some #{(:tag node)} passthrough-elements))
           (log (str "Unhandled: " (:tag node))))
         (evaluate-parts template datamodel (assoc state
-                                                       :complexity (+ 0.5 (:complexity state)))))
+                                                  :complexity (+ 0.5 (:complexity state)))))
       )
     ))
 
