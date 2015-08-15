@@ -5,8 +5,16 @@
               [clojure.zip :as zip]
               [re-com.buttons :as buttons]
               [re-com.core :as re-com]
-              [re-frame.core :as re-frame])
+              [re-frame.core :as re-frame] 
+              [re-com.popover :as popover])
 
+)
+
+(defn md [icon title enabled]
+  [:span [:i {:class "material-icons right-margin" 
+              :style {:font-size "20px"
+                      :color (if enabled "orange" "grey")}
+              :title title} icon]]
 )
 
 (defn name-and-id [name elem]
@@ -29,7 +37,6 @@
   (.log js/console msg)
 )
 
-
 (defn- other-side [det link-name datamodel]
   (if (string? link-name)
     (if (> (.indexOf link-name ",") -1)
@@ -44,6 +51,13 @@
         new-start
         ))))
 
+(defn- other-side-or-unknown [det link-name datamodel]
+  (let [other (other-side det link-name datamodel)]
+    (if (nil? other)
+      "unknown"
+      other)
+    ))
+
 (defn last-link [link-name]
     (last (str/split link-name ",")))
 
@@ -51,7 +65,7 @@
     (count (str/split link-name ",")))
 
 (defn- extra-info[source pairs & {:keys [width] :or {width "250px"}}]
-  (if-not (empty? (dissoc source (keys pairs)))
+  (if-not (empty? (select-keys source (keys pairs)))
     [buttons/info-button 
      :width width
      :info
@@ -63,6 +77,26 @@
                    [:tr 
                     [:td (val pair)] 
                     [:td (get source (key pair))]]))]]]]))
+
+(defn error-info[errors]
+  (if-not (and (empty? (:warnings errors))
+               (empty? (:errors errors)))
+  (let [showing? (reagent/atom false)]
+        [popover/popover-anchor-wrapper
+         :showing? showing?
+         :position :right-center
+         :anchor  [:span                    {
+                     :on-mouse-over #(reset! showing? true)
+                     :on-mouse-out  #(reset! showing? false)}
+                   [:i {:class "material-icons right-margin" 
+                              :style {:font-size "20px"
+                                      :color  "orange"}
+                              } "warning"]
+                   ]
+         :popover [popover/popover-content-wrapper
+                   :showing? showing?
+                   :position :right-center
+                   :body     (str "These are the errors" errors)]])))
 
 
 (defn text-element [text]
@@ -88,12 +122,6 @@
   (= "true" attr)
 )
 
-(defn md [icon title enabled]
-  [:span [:i {:class "material-icons right-margin" 
-              :style {:font-size "20px"
-                      :color (if enabled "orange" "grey")}
-              :title title} icon]]
-)
 
 (defn attr-icon [element attribute icon enabled-text disabled-text]
   (if (not (nil? (get-in element [:attrs attribute])))

@@ -153,35 +153,61 @@
               ]])
 
 
+(defn- attribute-group-element [element]
+  [re-com/h-box
+   :children [(tutil/name-and-id "Attribute group" element)
+              (tutil/unused-attrs element [:style])
+              (attrs-display element [:style])
+              ]])
+
+(defn check-link-element [link data-model]
+  (let [link-name (get-in link [:attrs :name])
+        not-exists (nil? (mutils/get-link-entity-type data-model 
+                                            link-name
+                                            false))
+        uncased-link (mutils/get-link-entity-type data-model 
+                                            link-name
+                                            true)
+        not-exists-ignore (not (nil? uncased-link))]
+    (assoc {} 
+           :errors (if (and (not not-exists-ignore) 
+                            not-exists) 
+                     [(str "Link entity type does not exist " link-name)])
+           :warnings (if (and not-exists-ignore not-exists)
+                       [(str not-exists " " not-exists-ignore "Case of link entity incorrect. Is " link-name 
+                             " but should be " (:name uncased-link))])    
+           )))
+
 (defn- link-element[link datamodel det]
   (let [unused (dissoc (:attrs link)
                        :name :showEditIOLink :parentonleftside 
                        :relateLeadIns :defaultTemplateSelector
                        :showDeleteLink)
         link-name (get-in link [:attrs :name])
-        other-side (tutil/other-side det (get-in link [:attrs :name]) datamodel)
+        other-side (tutil/other-side-or-unknown det (get-in link [:attrs :name]) datamodel)
+        errors (check-link-element link datamodel)
         ]
     [re-com/h-box
-     :children [(tutil/name-and-id "Link" link)
+     :children [(tutil/error-info errors)
+                (tutil/name-and-id "Link" link)
                 [:div 
                 (if-not (empty? unused)
                   [:span (str unused)])
                  (tutil/attr-icon link :showEditIOLink "create" 
-                                 "Show edit entity link" "Do not show edit entity link")
+                                  "Show edit entity link" "Do not show edit entity link")
                  
                  (if (not (nil? (get-in link [:attrs :parentonleftside])))
                    (let [right (= "right" (get-in link [:attrs :parentonleftside]))]
                      (tutil/md (if right "arrow_back" "arrow_forward") 
                                (if right "Right to left" "Left to right")
-                         true)))
-
+                               true)))
+                 
                  (tutil/attr-icon link :relateLeadIns "link" 
-                                 "Relate lead ins" "Do not related lead ins")
-
+                                  "Relate lead ins" "Do not related lead ins")
+                 
                  (tutil/attr-icon link :showDeleteLink "content_cut" 
-                                 "Allow delete" "Do not allow delete")
-
-
+                                  "Allow delete" "Do not allow delete")
+                 
                  [:span {:style {:padding-right "5px"}} "Going from"]  
                  [:span {:class "template-det"} det] 
                  [:span " to "] 
@@ -240,6 +266,8 @@
                    "iot_attribute" [:div (attribute-element node (:det current-det) 
                                                             "template-det" "Attribute")
                                     (display-parts template datamodel current-det)]
+                   "iot_attr_group" [:div (attribute-group-element node)
+                                    (display-parts template datamodel current-det)]
                    "text" [:div (tutil/text-element node)
                            (display-parts template datamodel current-det)]
                    "label" [:div (label-element node)
@@ -256,7 +284,7 @@
                    "relationtype" [:div (link-element node datamodel (:det current-det))
                                    (display-parts template datamodel  
                                                   (assoc current-det 
-                                                         :det (tutil/other-side (:det current-det) 
+                                                         :det (tutil/other-side-or-unknown (:det current-det) 
                                                                                 (get-in node [:attrs :name]) datamodel)
                                                          :let (tutil/last-link (get-in node [:attrs :name]))))]
                    

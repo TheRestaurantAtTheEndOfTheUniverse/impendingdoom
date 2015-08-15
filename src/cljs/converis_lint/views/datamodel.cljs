@@ -235,17 +235,18 @@
             type (:templateType @current-template)
             edit? (tutil/is-edit-template type)
             result (if edit?
-                     nil
+                     {}
                      (otemplate/evaluate-template (zip/xml-zip (:template @current-template)) 
                                                   @model 
                                                   {:det (name @det) :weight 0 :eval 0 :walk-depth 0}))]
-        [:div {:class "template-eval"}
-         [:table [:tbody 
-                  [:tr [:td "Data weight"] [:td (gstring/format "%.2f" (:weight result))]]                     
-                  [:tr [:td "Complexity"] [:td (:complexity result)]]
-                  [:tr [:td "Walk depth"] [:td (:walk-depth result)]]
-                  [:tr [:td "Conditional content"] [:td (:eval result)]]
-                  ]]]))))
+        (if-not edit?
+          [:div {:class "template-eval"}
+           [:table [:tbody 
+                    [:tr [:td "Data weight"] [:td (gstring/format "%.2f" (:weight result))]]                     
+                    [:tr [:td "Complexity"] [:td (:complexity result)]]
+                    [:tr [:td "Walk depth"] [:td (:walk-depth result)]]
+                    [:tr [:td "Conditional content"] [:td (:eval result)]]
+                    ]]])))))
 
 (defn- current-template[]
   (let [templates (re-frame/subscribe [:templates])

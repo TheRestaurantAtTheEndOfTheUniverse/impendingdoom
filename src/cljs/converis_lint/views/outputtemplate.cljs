@@ -126,12 +126,12 @@
   [re-com/h-box
    :children [(tutil/name-and-id "Eval" eval)
               (condp = (get-in eval [:attrs :operator])
-                "set" (list ^{:key "not-empty"}[:div[:span {:class "right-margin"} "When"]
-                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
-                            [:span " is not empty"]])
-                "notset" (list [:span {:class "right-margin"} "When"]
-                            [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
-                            [:span "is empty"])
+                "set" (list ^{:key "When"}[:span {:class "right-margin"} "When"]
+                            ^{:key "id"}[:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                            ^{:key "cond"}[:span " is not empty"])
+                "notset" (list ^{:key "When"}[:span {:class "right-margin"} "When"]
+                               ^{:key "id"}[:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
+                               ^{:key "cond"}[:span "is empty"])
                 "notequals" (list [:span {:class "right-margin"} "When"]
                             [:span {:class "element-id right-margin"} (get-in eval [:attrs :elementId])]
                             [:span {:class "right-margin"} "does not equal"]
