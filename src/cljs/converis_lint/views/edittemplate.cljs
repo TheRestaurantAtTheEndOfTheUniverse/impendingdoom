@@ -9,8 +9,6 @@
               [re-frame.core :as re-frame])
 )
 
-(declare display-template)
-
 (defn log [msg]
   (.log js/console msg)
 )
@@ -18,6 +16,70 @@
 (defn all-children [node]
    (take-while #(not (nil? %1))
               (iterate zip/right (zip/down node))))
+
+
+(def element-complexity
+  { "section" 1
+    "grid" 0.5
+    "column" 1})
+
+
+(def passthrough-elements 
+  []
+)
+
+(declare evaluate-template)
+
+(defn- evaluate-parts [template datamodel state]
+  (reduce #(evaluate-template %2 datamodel %1)
+          state
+          (all-children template)))
+
+(defn evaluate-template [template datamodel state]
+  (let [node (zip/node template)
+        complexity (get element-complexity (:tag node))]
+    (condp = (:tag node)
+      "label" (evaluate-parts template datamodel (assoc state 
+                                                        :weight (+ 0.2 (:weight state))
+                                                        :complexity (+ complexity (:complexity state))))
+      "iot_attribute" (let [attr-name (get-in node [:attrs :name])
+                            current-attr (mutils/data-entity-attribute datamodel 
+                                                                       (:det state) attr-name)]
+                        (evaluate-parts template datamodel 
+                                        (assoc state 
+                                               :weight (+ (get tutil/template-type-weights 
+                                                               (:dataType current-attr)) 
+                                                          (:weight state))
+                                               :complexity (+ complexity (:complexity state))))
+                        )
+      "relt_attribute" (let [attr-name (get-in node [:attrs :name])
+                            current-attr (mutils/link-entity-attribute datamodel 
+                                                                       (:let state) attr-name)]                         
+                         (evaluate-parts template datamodel 
+                                        (assoc state 
+                                               :weight (+ (get tutil/template-type-weights 
+                                                               (:dataType current-attr)) 
+                                                          (:weight state))
+                                               :complexity (+ complexity (:complexity state)))))
+      "relationtype" (evaluate-parts template datamodel 
+                                 (assoc state 
+                                        :det (tutil/other-side (:det state) 
+                                                               (get-in node [:attrs :name]) datamodel)
+                                        :let (tutil/last-link (get-in node [:attrs :name]))
+                                        :walk-depth (+ (tutil/link-count (get-in node [:attrs :name])) 
+                                                       (:walk-depth state))
+                                        :complexity (+ 0.5 (:complexity state))))
+      (do
+        (if (nil? (some #{(:tag node)} passthrough-elements))
+          (log (str "Unhandled: " (:tag node))))
+        (evaluate-parts template datamodel (assoc state
+                                                  :complexity (+ 0.5 (:complexity state)))))
+      )
+    ))
+
+
+
+(declare display-template)
 
 (defn current-section[]
   (let [section (re-frame/subscribe [:current-section])]
@@ -104,9 +166,9 @@
                                           :tabsToRender :gridLabelKey :showCreateLink 
                                           :showEmptyFilePanel :showUploadLink :attributeLayout
                                           :mandatory])
-                (for [tab (str/split (get-in grid [:attrs :tabsToRender]) ",")]
+                [:span (for [tab (str/split (get-in grid [:attrs :tabsToRender]) ",")]
                   [:span {:class "template-tab right-margin"} (str tab)]
-                  )
+                  )]
                 (tutil/attr-icon grid :showCreateLink "add_circle" 
                                  "Show create link" "Do not show create link")
                 (tutil/attr-icon grid :showEmptyFilePanel "folder" 
@@ -309,3 +371,5 @@
                     (str (:tag node) (:attrs node))               
                     (display-parts template datamodel current-det)                  
                     ])]])))
+
+

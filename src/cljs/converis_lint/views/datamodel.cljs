@@ -227,26 +227,25 @@
 )
 
 (defn- current-template-eval[]
-  (let [current-template (re-frame/subscribe [:current-template])]        
+  (let [current-template (re-frame/subscribe [:current-template])]      
     (if-not (nil? @current-template)
-      (let [templates (re-frame/subscribe [:templates])
+      (let  [templates (re-frame/subscribe [:templates])
             model (re-frame/subscribe [:data-model])
             det (re-frame/subscribe [:current-data-entity])
             type (:templateType @current-template)
             edit? (tutil/is-edit-template type)
+            zipper (zip/xml-zip (:template @current-template)) 
+            initial-state {:det (name @det) :weight 0 :eval 0 :walk-depth 0}
             result (if edit?
-                     {}
-                     (otemplate/evaluate-template (zip/xml-zip (:template @current-template)) 
-                                                  @model 
-                                                  {:det (name @det) :weight 0 :eval 0 :walk-depth 0}))]
-        (if-not edit?
+                     (etemplate/evaluate-template zipper @model initial-state)
+                     (otemplate/evaluate-template zipper @model initial-state))]
           [:div {:class "template-eval"}
            [:table [:tbody 
                     [:tr [:td "Data weight"] [:td (gstring/format "%.2f" (:weight result))]]                     
                     [:tr [:td "Complexity"] [:td (:complexity result)]]
                     [:tr [:td "Walk depth"] [:td (:walk-depth result)]]
                     [:tr [:td "Conditional content"] [:td (:eval result)]]
-                    ]]])))))
+                    ]]]))))
 
 (defn- current-template[]
   (let [templates (re-frame/subscribe [:templates])

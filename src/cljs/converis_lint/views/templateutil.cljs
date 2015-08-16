@@ -130,3 +130,11 @@
           enabled))))
 
 
+(def template-type-weights
+  {"STRING" 1
+   "TEXT" 5
+   "BOOLEAN" 0.1
+   "NUMBER" 0.25
+   "DATE" 0.35
+   "CGV" 0.2}
+)

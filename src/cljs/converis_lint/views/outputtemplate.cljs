@@ -261,14 +261,6 @@
               ])))
 
 
-(def template-type-weights
-  {"STRING" 1
-   "TEXT" 5
-   "BOOLEAN" 0.1
-   "NUMBER" 0.25
-   "DATE" 0.35
-   "CGV" 0.2}
-)
 
 (def passthrough-elements 
   ["template"
@@ -336,7 +328,7 @@
                                                                        (:det state) attr-name)]
                         (evaluate-parts template datamodel 
                                         (assoc state 
-                                               :weight (+ (get template-type-weights 
+                                               :weight (+ (get tutil/template-type-weights 
                                                                (:dataType current-attr)) 
                                                           (:weight state))
                                                :complexity (+ complexity (:complexity state))))
@@ -346,7 +338,7 @@
                                                                        (:let state) attr-name)]                         
                          (evaluate-parts template datamodel 
                                         (assoc state 
-                                               :weight (+ (get template-type-weights 
+                                               :weight (+ (get tutil/template-type-weights 
                                                                (:dataType current-attr)) 
                                                           (:weight state))
                                                :complexity (+ complexity (:complexity state)))))
