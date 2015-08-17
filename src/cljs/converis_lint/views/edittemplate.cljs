@@ -2,6 +2,7 @@
     (:require [clojure.string :as str]
               [converis-lint.modelutils :as mutils]
               [converis-lint.views.templateutil :as tutil]
+              [converis-lint.data.checktemplate :as check]
               [reagent.core :as reagent]
               [clojure.zip :as zip]
               [re-com.buttons :as buttons]
@@ -39,9 +40,6 @@
   (let [node (zip/node template)
         complexity (get element-complexity (:tag node))]
     (condp = (:tag node)
-      "label" (evaluate-parts template datamodel (assoc state 
-                                                        :weight (+ 0.2 (:weight state))
-                                                        :complexity (+ complexity (:complexity state))))
       "iot_attribute" (let [attr-name (get-in node [:attrs :name])
                             current-attr (mutils/data-entity-attribute datamodel 
                                                                        (:det state) attr-name)]
@@ -222,23 +220,9 @@
               (attrs-display element [:style])
               ]])
 
-(defn check-link-element [link data-model]
-  (let [link-name (get-in link [:attrs :name])
-        not-exists (nil? (mutils/get-link-entity-type data-model 
-                                            link-name
-                                            false))
-        uncased-link (mutils/get-link-entity-type data-model 
-                                            link-name
-                                            true)
-        not-exists-ignore (not (nil? uncased-link))]
-    (assoc {} 
-           :errors (if (and (not not-exists-ignore) 
-                            not-exists) 
-                     [(str "Link entity type does not exist " link-name)])
-           :warnings (if (and not-exists-ignore not-exists)
-                       [(str not-exists " " not-exists-ignore "Case of link entity incorrect. Is " link-name 
-                             " but should be " (:name uncased-link))])    
-           )))
+(defn check-link-element [link data-model det-name]
+  (let [link-name (get-in link [:attrs :name])]
+    (check/check-let data-model link-name det-name)))
 
 (defn- link-element[link datamodel det]
   (let [unused (dissoc (:attrs link)
@@ -247,7 +231,7 @@
                        :showDeleteLink)
         link-name (get-in link [:attrs :name])
         other-side (tutil/other-side-or-unknown det (get-in link [:attrs :name]) datamodel)
-        errors (check-link-element link datamodel)
+        errors (check-link-element link datamodel det)
         ]
     [re-com/h-box
      :children [(tutil/error-info errors)
@@ -301,7 +285,6 @@
 
 ((defn display-template[template datamodel current-det & {:keys [no-indent] :or {no-indent false}}]
    (let [node (zip/node template)]
-     (.log js/console (str "Node: " (:tag node)))
      [re-com/v-box 
       :class (if (or no-indent 
                      (not (nil? (some #{(:tag node)} no-indent-elements))))

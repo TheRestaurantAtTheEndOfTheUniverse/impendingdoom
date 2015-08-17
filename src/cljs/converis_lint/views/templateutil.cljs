@@ -41,10 +41,15 @@
   (if (string? link-name)
     (if (> (.indexOf link-name ",") -1)
       (recur det (str/split link-name ",") datamodel) 
-      (let [link-type (mutils/get-link-entity-type datamodel link-name true)]
-        (if (= (:left link-type) det)
-          (:right link-type)
-          (:left link-type))))
+      (let [link-type (mutils/get-link-entity-type datamodel link-name true)
+            left (:left link-type)
+            right (:right link-type)]
+        (if (nil? link-type)
+          nil
+          (condp = det
+            left right
+            right left
+            nil))))
     (let [new-start (other-side det (first link-name) datamodel)]
       (if (> (count link-name) 1)
         (recur new-start (rest link-name) datamodel)

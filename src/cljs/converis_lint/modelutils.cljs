@@ -46,6 +46,19 @@
   id
 )
 
+(defn data-entity-type [data-model entity-name ignore-case]
+  (let [keyword-name (keywordize entity-name)
+        string-name (unkeywordize entity-name)]
+    (if ignore-case
+      (let [matches (filter #(= (str/upper-case string-name)
+                                (str/upper-case (:name (val %1))))
+                            (:dataentitytypes data-model))]
+        (if-not (empty? matches)
+          (val (first matches))
+          nil))
+      (get (:dataentitytypes data-model) keyword-name)))
+  )
+
 (defn data-entity-list [datamodel]
   (reduce #(conj %1 (assoc {} :id (key %2) :label (name (key %2))))
           []
@@ -69,6 +82,13 @@
       (get (:linkentitytypes data-model) keyword-name)))
   )
 
+(defn connected-links [data-model data-entity]
+  (let [det-name (unkeywordize data-entity)]
+    (filter #(or (= (:left %1) det-name)
+                 (= (:right %1) det-name)
+                 )
+            (:linkentitytypes data-model))))
+
 (defn link-entity-attribute [datamodel link-name attr-name]
   (let [link (get-link-entity-type datamodel link-name false)
         attrs (:attributeDefinitions link)]
@@ -76,15 +96,14 @@
 
 
 (defn connected-data-entities [db entity]
-  (log (str "Connected " entity))
-  (let [entity-name (name entity)]
-  (reduce #(if (= entity-name (:left %2))
-             (conj %1 (keyword (:right %2)))
-             (if (= entity-name (:right %2))
-               (conj %1 (keyword (:left %2)))
-               %1))
-          #{}
-          (get-link-entity-types (:data-model db)))))
+  (let [entity-name (unkeywordize entity)]
+    (reduce #(if (= entity-name (:left %2))
+               (conj %1 (keyword (:right %2)))
+               (if (= entity-name (:right %2))
+                 (conj %1 (keyword (:left %2)))
+                 %1))
+            #{}
+            (get-link-entity-types (:data-model db)))))
 
 (defn- tree-cgv [root cgvs]
   (let [children (filter #(= (:name root) (:parentChoiceGroupValue %1)) cgvs)]
