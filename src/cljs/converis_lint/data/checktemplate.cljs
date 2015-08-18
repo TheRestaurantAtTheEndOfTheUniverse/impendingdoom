@@ -38,7 +38,6 @@
 )
 
 (defn check-let [data-model let-name current-det]
-  (log (str "Check let " current-det let-name))
   (let [det (if-not (nil? current-det)
               (mutils/data-entity-type data-model current-det true))
         exists-matching-case (mutils/get-link-entity-type data-model 
@@ -79,3 +78,4 @@
                      (if-not exists 
                        [(str "Link entity type " let-name " does not have attribute " attr-name)])
            ))))
+
