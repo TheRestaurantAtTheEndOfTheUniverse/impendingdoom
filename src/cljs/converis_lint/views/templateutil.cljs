@@ -101,7 +101,11 @@
          :popover [popover/popover-content-wrapper
                    :showing? showing?
                    :position :right-center
-                   :body     (str "These are the errors" errors)]])))
+                   :body     [re-com/v-box
+                              :children [[:div (:errors errors)]
+                                         [:div (:warnings errors)]
+                                         ]
+                              ]]])))
 
 
 (defn text-element [text]
