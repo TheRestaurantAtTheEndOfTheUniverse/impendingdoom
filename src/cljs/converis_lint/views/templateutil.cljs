@@ -102,7 +102,8 @@
                    :showing? showing?
                    :position :right-center
                    :body     [re-com/v-box
-                              :children [[:div (:errors errors)]
+                              :children [[:div "Errors"]
+                                         [:div (:errors errors)]
                                          [:div (:warnings errors)]
                                          ]
                               ]]])))
@@ -147,3 +148,4 @@
    "DATE" 0.35
    "CGV" 0.2}
 )
+
